@@ -1,6 +1,6 @@
 <?php
 
-namespace TemplateEngine\Util;
+namespace GX2CMS\TemplateEngine\Util;
 
 final class NodeUtil
 {

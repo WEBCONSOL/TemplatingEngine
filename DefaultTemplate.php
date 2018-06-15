@@ -1,22 +1,22 @@
 <?php
 
-namespace TemplateEngine;
+namespace GX2CMS\TemplateEngine;
 
 use Handlebars\Handlebars;
 use Handlebars\Loader\FilesystemLoader;
 use Masterminds\HTML5;
-use TemplateEngine\Model\Context;
-use TemplateEngine\Model\Tmpl;
-use TemplateEngine\DefaultTemplate\ApiAttrs;
-use TemplateEngine\DefaultTemplate\CompileInterface;
-use TemplateEngine\DefaultTemplate\CompileLiteral;
-use TemplateEngine\Util\CompilerUtil;
-use TemplateEngine\Util\Html5Util;
-use TemplateEngine\Util\NodeUtil;
+use GX2CMS\TemplateEngine\Model\Context;
+use GX2CMS\TemplateEngine\Model\Tmpl;
+use GX2CMS\TemplateEngine\DefaultTemplate\ApiAttrs;
+use GX2CMS\TemplateEngine\DefaultTemplate\CompileInterface;
+use GX2CMS\TemplateEngine\DefaultTemplate\CompileLiteral;
+use GX2CMS\TemplateEngine\Util\CompilerUtil;
+use GX2CMS\TemplateEngine\Util\Html5Util;
+use GX2CMS\TemplateEngine\Util\NodeUtil;
 
 final class DefaultTemplate implements EzpzTmplInterface
 {
-    const HANDLEBARS_HELPERS_PACKATE = '\\TemplateEngine\\Handlebars\\Helper\\';
+    const HANDLEBARS_HELPERS_PACKATE = '\\GX2CMS\\TemplateEngine\\Handlebars\\Helper\\';
     private static $engine = null;
     private $tmplPackagePfx = null;
 

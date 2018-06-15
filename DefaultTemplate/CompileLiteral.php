@@ -1,11 +1,11 @@
 <?php
 
-namespace TemplateEngine\DefaultTemplate;
+namespace GX2CMS\TemplateEngine\DefaultTemplate;
 
-use TemplateEngine\EzpzTmplInterface;
-use TemplateEngine\Model\Context;
-use TemplateEngine\Model\Tmpl;
-use TemplateEngine\Util\CompilerUtil;
+use GX2CMS\TemplateEngine\EzpzTmplInterface;
+use GX2CMS\TemplateEngine\Model\Context;
+use GX2CMS\TemplateEngine\Model\Tmpl;
+use GX2CMS\TemplateEngine\Util\CompilerUtil;
 
 class CompileLiteral
 {

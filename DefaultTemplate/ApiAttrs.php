@@ -1,6 +1,6 @@
 <?php
 
-namespace TemplateEngine\DefaultTemplate;
+namespace GX2CMS\TemplateEngine\DefaultTemplate;
 
 class ApiAttrs
 {

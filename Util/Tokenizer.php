@@ -1,8 +1,8 @@
 <?php
 
-namespace TemplateEngine\Util;
+namespace GX2CMS\TemplateEngine\Util;
 
-use TemplateEngine\Util\Exception\UnexpectedTokenException;
+use GX2CMS\TemplateEngine\Util\Exception\UnexpectedTokenException;
 
 final class Tokenizer
 {

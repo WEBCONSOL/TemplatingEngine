@@ -1,6 +1,6 @@
 <?php
 
-namespace TemplateEngine\Model;
+namespace GX2CMS\TemplateEngine\Model;
 
 class Context implements \JsonSerializable, \Countable
 {

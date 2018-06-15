@@ -1,9 +1,9 @@
 <?php
 
-namespace TemplateEngine\Util;
+namespace GX2CMS\TemplateEngine\Util;
 
-use TemplateEngine\DefaultTemplate\ApiAttrs;
-use TemplateEngine\Model\Context;
+use GX2CMS\TemplateEngine\DefaultTemplate\ApiAttrs;
+use GX2CMS\TemplateEngine\Model\Context;
 
 final class CompilerUtil
 {

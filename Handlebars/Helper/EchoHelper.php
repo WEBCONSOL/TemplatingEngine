@@ -1,6 +1,6 @@
 <?php
 
-namespace TemplateEngine\Handlebars\Helper;
+namespace GX2CMS\TemplateEngine\Handlebars\Helper;
 
 use Handlebars\Context;
 use Handlebars\Helper;

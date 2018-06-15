@@ -1,9 +1,9 @@
 <?php
 
-namespace TemplateEngine;
+namespace GX2CMS\TemplateEngine;
 
-use TemplateEngine\Model\Context;
-use TemplateEngine\Model\Tmpl;
+use GX2CMS\TemplateEngine\Model\Context;
+use GX2CMS\TemplateEngine\Model\Tmpl;
 
 final class Ezpz
 {

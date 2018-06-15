@@ -16,6 +16,7 @@ use TemplateEngine\Util\NodeUtil;
 
 final class DefaultTemplate implements EzpzTmplInterface
 {
+    const HANDLEBARS_HELPERS_PACKATE = '\\TemplateEngine\\Handlebars\\Helper\\';
     private static $engine = null;
     private $tmplPackagePfx = null;
 
@@ -173,7 +174,7 @@ final class DefaultTemplate implements EzpzTmplInterface
             {
                 $parts = explode(DS, $helper);
                 $last = str_replace('.php', '', end($parts));
-                $cls = '\\Template\\Handlebars\\Helper\\' . $last;
+                $cls = self::HANDLEBARS_HELPERS_PACKATE . $last;
                 self::$engine->addHelper(str_replace('helper', '', strtolower($last)), new $cls);
             }
         }

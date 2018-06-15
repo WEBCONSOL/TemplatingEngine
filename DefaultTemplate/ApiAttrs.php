@@ -1,6 +1,6 @@
 <?php
 
-namespace Template\DefaultTemplate;
+namespace TemplateEngine\DefaultTemplate;
 
 class ApiAttrs
 {

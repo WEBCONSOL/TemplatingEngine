@@ -1,9 +1,9 @@
 <?php
 
-namespace Template\Util;
+namespace TemplateEngine\Util;
 
-use Template\DefaultTemplate\ApiAttrs;
-use Template\Model\Context;
+use TemplateEngine\DefaultTemplate\ApiAttrs;
+use TemplateEngine\Model\Context;
 
 final class CompilerUtil
 {

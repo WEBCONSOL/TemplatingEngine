@@ -1,8 +1,8 @@
 <?php
 
-namespace Template\Util\Exception;
+namespace TemplateEngine\Util\Exception;
 
-use Template\Util\Tokenizer;
+use TemplateEngine\Util\Tokenizer;
 
 /**
  * Unexpected token

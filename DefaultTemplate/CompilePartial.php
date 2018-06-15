@@ -1,10 +1,10 @@
 <?php
 
-namespace Template\DefaultTemplate;
+namespace TemplateEngine\DefaultTemplate;
 
-use Template\EzpzTmpl;
-use Template\Model\Context;
-use Template\Model\Tmpl;
+use TemplateEngine\EzpzTmplInterface;
+use TemplateEngine\Model\Context;
+use TemplateEngine\Model\Tmpl;
 
 class CompilePartial implements CompileInterface
 {
@@ -15,7 +15,7 @@ class CompilePartial implements CompileInterface
      *
      * @return bool
      */
-    public function __invoke(\DOMElement &$node, \DOMElement &$child, Context $context, Tmpl $tmpl, EzpzTmpl $engine): bool
+    public function __invoke(\DOMElement &$node, \DOMElement &$child, Context $context, Tmpl $tmpl, EzpzTmplInterface $engine): bool
     {
         $attr = $child->getAttribute(ApiAttrs::INCLUDE);
         $file = $tmpl->getPartialsPath() . $attr;

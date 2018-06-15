@@ -1,6 +1,6 @@
 <?php
 
-namespace Template\Handlebars\Helper;
+namespace TemplateEngine\Handlebars\Helper;
 
 use Handlebars\Context;
 use Handlebars\Helper;

@@ -1,8 +1,8 @@
 <?php
 
-namespace Template\Util;
+namespace TemplateEngine\Util;
 
-use Template\Util\Exception\UnexpectedTokenException;
+use TemplateEngine\Util\Exception\UnexpectedTokenException;
 
 final class Tokenizer
 {

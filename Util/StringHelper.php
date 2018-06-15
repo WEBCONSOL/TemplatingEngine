@@ -1,6 +1,6 @@
 <?php
 
-namespace Template\Util;
+namespace TemplateEngine\Util;
 
 final class StringHelper
 {

@@ -1,21 +1,20 @@
 <?php
 
-namespace Template;
+namespace TemplateEngine;
 
 use Handlebars\Handlebars;
 use Handlebars\Loader\FilesystemLoader;
 use Masterminds\HTML5;
-use Template\Model\Context;
-use Template\Model\Tmpl;
-use Template\DefaultTemplate\ApiAttrs;
-use Template\DefaultTemplate\CompileInterface;
-use Template\DefaultTemplate\CompileLiteral;
-use Template\Util\CompilerUtil;
-use Template\Util\Html5Util;
-use Template\Util\NodeUtil;
-use Template\Util\Tokenizer;
+use TemplateEngine\Model\Context;
+use TemplateEngine\Model\Tmpl;
+use TemplateEngine\DefaultTemplate\ApiAttrs;
+use TemplateEngine\DefaultTemplate\CompileInterface;
+use TemplateEngine\DefaultTemplate\CompileLiteral;
+use TemplateEngine\Util\CompilerUtil;
+use TemplateEngine\Util\Html5Util;
+use TemplateEngine\Util\NodeUtil;
 
-final class DefaultTemplate implements EzpzTmpl
+final class DefaultTemplate implements EzpzTmplInterface
 {
     private static $engine = null;
     private $tmplPackagePfx = null;
@@ -85,7 +84,7 @@ final class DefaultTemplate implements EzpzTmpl
      * @param Context $context
      * @param         $node
      */
-    private function _compile(HTML5 &$html5, &$node, Context $context, Tmpl $tmpl, EzpzTmpl $engine, array $apiServices)
+    private function _compile(HTML5 &$html5, &$node, Context $context, Tmpl $tmpl, EzpzTmplInterface $engine, array $apiServices)
     {
         if ($node instanceof \DOMElement)
         {

@@ -1,11 +1,11 @@
 <?php
 
-namespace Template\DefaultTemplate;
+namespace TemplateEngine\DefaultTemplate;
 
-use Template\EzpzTmpl;
-use Template\Model\Context;
-use Template\Model\Tmpl;
-use Template\Util\NodeUtil;
+use TemplateEngine\EzpzTmplInterface;
+use TemplateEngine\Model\Context;
+use TemplateEngine\Model\Tmpl;
+use TemplateEngine\Util\NodeUtil;
 
 class CompileElement implements CompileInterface
 {
@@ -18,7 +18,7 @@ class CompileElement implements CompileInterface
      *
      * @return bool
      */
-    public function __invoke(\DOMElement &$node, \DOMElement &$child, Context $context, Tmpl $tmpl, EzpzTmpl $engine): bool
+    public function __invoke(\DOMElement &$node, \DOMElement &$child, Context $context, Tmpl $tmpl, EzpzTmplInterface $engine): bool
     {
         $attr = $child->getAttribute(ApiAttrs::ELEMENT);
         if (in_array($attr, $this->allowedElements)) {

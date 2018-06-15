@@ -1,11 +1,11 @@
 <?php
 
-namespace Template\DefaultTemplate;
+namespace TemplateEngine\DefaultTemplate;
 
-use Template\EzpzTmpl;
-use Template\Model\Context;
-use Template\Model\Tmpl;
-use Template\Util\CompilerUtil;
+use TemplateEngine\EzpzTmplInterface;
+use TemplateEngine\Model\Context;
+use TemplateEngine\Model\Tmpl;
+use TemplateEngine\Util\CompilerUtil;
 
 class CompileLiteral
 {
@@ -13,7 +13,7 @@ class CompileLiteral
      * @param Context  $context
      * @param \DOMText $node
      */
-    public static function process(\DOMText &$node, Context $context, Tmpl $tmpl, EzpzTmpl $engine)
+    public static function process(\DOMText &$node, Context $context, Tmpl $tmpl, EzpzTmplInterface $engine)
     {
         if (isset($node->data))
         {

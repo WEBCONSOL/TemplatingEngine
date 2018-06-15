@@ -1,6 +1,6 @@
 <?php
 
-namespace Template\Model;
+namespace TemplateEngine\Model;
 
 class Tmpl
 {

@@ -1,11 +1,11 @@
 <?php
 
-namespace Template\DefaultTemplate;
+namespace TemplateEngine\DefaultTemplate;
 
-use Template\EzpzTmpl;
-use Template\Model\Context;
-use Template\Model\Tmpl;
-use Template\Util\CompilerUtil;
+use TemplateEngine\EzpzTmplInterface;
+use TemplateEngine\Model\Context;
+use TemplateEngine\Model\Tmpl;
+use TemplateEngine\Util\CompilerUtil;
 
 class CompileTest implements CompileInterface
 {
@@ -16,7 +16,7 @@ class CompileTest implements CompileInterface
      *
      * @return bool
      */
-    public function __invoke(\DOMElement &$node, \DOMElement &$child, Context $context, Tmpl $tmpl, EzpzTmpl $engine): bool
+    public function __invoke(\DOMElement &$node, \DOMElement &$child, Context $context, Tmpl $tmpl, EzpzTmplInterface $engine): bool
     {
         $token = new Context(CompilerUtil::conditionalExpressionTokenizer(
             str_replace(array(ApiAttrs::TAG_EZPZ_OPEN,ApiAttrs::TAG_EZPZ_CLOSE), '', $child->getAttribute(ApiAttrs::TEST)))

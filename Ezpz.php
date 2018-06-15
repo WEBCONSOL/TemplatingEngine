@@ -1,9 +1,9 @@
 <?php
 
-namespace Template;
+namespace TemplateEngine;
 
-use Template\Model\Context;
-use Template\Model\Tmpl;
+use TemplateEngine\Model\Context;
+use TemplateEngine\Model\Tmpl;
 
 final class Ezpz
 {
@@ -14,12 +14,12 @@ final class Ezpz
      *
      * @param $engine
      */
-    public function __construct(EzpzTmpl $engine=null)
+    public function __construct(EzpzTmplInterface $engine=null)
     {
         if ($engine === null) {
             $this->loadEngine(new DefaultTemplate());
         }
-        else if ($engine instanceof EzpzTmpl) {
+        else if ($engine instanceof EzpzTmplInterface) {
             $this->engine = $engine;
         }
         else {
@@ -28,9 +28,9 @@ final class Ezpz
     }
 
     /**
-     * @param EzpzTmpl $engine
+     * @param EzpzTmplInterface $engine
      */
-    public function loadEngine(EzpzTmpl $engine) {$this->engine = $engine;}
+    public function loadEngine(EzpzTmplInterface $engine) {$this->engine = $engine;}
 
     /**
      * @param Context $context

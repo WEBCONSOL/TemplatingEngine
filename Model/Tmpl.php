@@ -59,7 +59,7 @@ class Tmpl
     /**
      * @return string
      */
-    public function getPartialsPath(): string {return $this->partialsPath;}
+    public function getPartialsPath(): string {return rtrim($this->partialsPath, '/') . '/';}
 
     /**
      * @return string

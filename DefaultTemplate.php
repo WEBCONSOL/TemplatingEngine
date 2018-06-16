@@ -124,8 +124,7 @@ final class DefaultTemplate implements EzpzTmplInterface
     }
 
     private function _compileHtmlELements(&$buffer, Context $context) {
-        $matches = array();
-        preg_match_all('/\${(.[^}]*)}/', $buffer, $matches);
+        $matches = CompilerUtil::parseLiteral($buffer);
         if (sizeof($matches) > 0 && isset($matches[0]) && isset($matches[1]) && !empty($matches[0]) && !empty($matches[1])) {
             foreach ($matches[1] as $k=>$v) {
                 $v = trim(preg_replace('/@\s+context=\'(.[^\']*)\'/', '', $v));

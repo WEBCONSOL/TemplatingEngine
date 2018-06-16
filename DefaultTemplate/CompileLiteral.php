@@ -19,56 +19,113 @@ class CompileLiteral
         {
             $data = trim($node->data);
 
-            if (strlen($data))
+            if (preg_match('/(\${{this}})/', $data))
             {
-                if (substr($data, 0, 2) === ApiAttrs::TAG_EZPZ_OPEN && $data[strlen($data)-1] === ApiAttrs::TAG_EZPZ_CLOSE)
-                {
-                    $data = str_replace(array(ApiAttrs::TAG_EZPZ_OPEN, ApiAttrs::TAG_EZPZ_CLOSE), '', $data);
-                    $first = $data[0];
-                    $last = $data[strlen($data)-1];
+                $parts = explode("\n", $data);
+                foreach ($parts as $i=>$item) {
 
-                    $parts = explode('@', trim($data));
-                    if (sizeof($parts) > 1) {
-                        $data = trim($parts[0]);
-                        $matches = array();
-                        preg_match('/context=\'(.*)\'/', $parts[1], $matches);
-                        if (!empty($matches) && isset($matches[1])) {
-                            if ($context->has($data)) {
-                                $node->data = $context->get($data);
-                            }
-                            else {
-                                $node->data = ApiAttrs::TAG_HB_OPEN . '{' . $data . '}' . ApiAttrs::TAG_HB_CLOSE;
-                            }
-                        }
-                        else if (strpos($parts[1], 'i18n')) {
-                            $parts[1] = preg_replace('/i18n(.*),\s+locale=/', '', trim($parts[1]));
-                            $parts[1]=trim($parts[1], '\'\s');
-                            $data = 'i18n.'.$parts[1].'.'.str_replace(array('\'', ' '), '', $parts[0]);
-                            $val = CompilerUtil::getVarValue($context, explode('.', $data));
-                            $node->data = $val;
-                        }
-                    }
-                    else if (($first === "'" && $last === "'") || ($first === '"' && $last === '"') ||
-                        is_bool($data) || is_numeric($data) || $data === 'true' || $data === 'false'
-                    ) {
-                        $node->data = ApiAttrs::TAG_HB_OPEN . ('echo ' . $data) . ApiAttrs::TAG_HB_CLOSE;
-                    }
-                    else if ($first === "[" && $last === ']') {
-                        $node->data = ApiAttrs::TAG_HB_OPEN . ('echo "' . str_replace(array('[',']'), '', $data).'"') . ApiAttrs::TAG_HB_CLOSE;
-                    }
-                    else if ($context->has($data)) {
-                        $node->data = $context->get($data);
+                    $l = array();
+                    preg_match('/\${{this}}/', $item, $l);
+
+                    if (!empty($l)) {
+                        $parts[$i] = str_replace($l[0], '{{{this}}}', $item);
                     }
                     else {
-                        $data = str_replace(
-                            array(ApiAttrs::EZPZ_LIST_ITEM),
-                            array(ApiAttrs::HB_LIST_ITEM),
-                            $data
-                        );
-                        $node->data = ApiAttrs::TAG_HB_OPEN . $data . ApiAttrs::TAG_HB_CLOSE;
+                        $callback = self::getCallback($item);
+                        if (strlen($callback)) {
+                            $parts[$i] = $callback($context, $item);
+                        }
                     }
+                }
+                $node->data = implode("\n", $parts);
+            }
+            else if (strlen($data))
+            {
+                $callback = self::getCallback($data);
+                if (strlen($callback)) {
+                    $node->data = $callback($context, $data);
                 }
             }
         }
+    }
+
+    private static function getCallback(string $data): string {
+        $matches = CompilerUtil::parseLiteral($data);
+        if (!empty($matches)) {
+            // multiple
+            if (sizeof($matches[0]) > 1) {
+                return self::class . '::handleMultiple';
+            }
+            // @
+            else if (sizeof(explode('@', $data)) == 2) {
+                return self::class . '::handleContext';
+            }
+            // constant or variable
+            else {
+                return self::class . '::handleVariable';
+            }
+        }
+        return "";
+    }
+
+    private static function handleMultiple(Context &$context, string $data): string {
+        $matches = CompilerUtil::parseLiteral($data);
+        foreach ($matches[1] as $i=>$match) {
+            $matches[1][$i] = self::handleVariable($context, $match);
+        }
+        return str_replace($matches[0], $matches[1], $data);
+    }
+
+    private static function handleContext(Context &$context, string $data): string {
+
+        $l = array();
+        preg_match('/\${(.[^}]*)@([^}]*)}/', $data, $l);
+        if (sizeof($l) === 3) {
+            $cnt = array();
+            preg_match('/context=\'(.*)\'/', $l[2], $cnt);
+            if (!empty($cnt)) {
+                return ApiAttrs::TAG_HB_OPEN . '{' . trim($l[1]) . '}' . ApiAttrs::TAG_HB_CLOSE;
+            }
+            else {
+                $cnt = array();
+                preg_match('/i18n(.*)locale=(.*)/', $l[2], $cnt);
+                if (!empty($cnt) && sizeof($cnt) === 3) {
+
+                    $key = 'i18n.' . preg_replace('/[\s\n\r\'"]/', '', $l[1]) .'.'. preg_replace('/[\s\n\r\'"]/', '', $cnt[2]);
+                    $val = CompilerUtil::getVarValue($context, explode('.', $key));
+                    if (!empty($val)) {
+                        return $val;
+                    }
+                    return preg_replace('/[\s\n\r\'"]/', '', $l[1]);
+                }
+            }
+        }
+
+        return $data;
+    }
+
+    private static function handleVariable(Context &$context, string $data): string {
+        return $context->has($data) ? $context->get($data) : self::handleConstant($data);
+    }
+
+    private static function handleConstant(string $data): string {
+
+        $first = $data[0];
+        $last = $data[strlen($data)-1];
+
+        if (($first === "'" && $last === "'") || ($first === '"' && $last === '"'))
+        {
+            return substr($data, 1, -1);
+        }
+        else if (is_bool($data) || is_numeric($data) || $data === 'true' || $data === 'false')
+        {
+            return $data;
+        }
+        else if ($first === "[" && $last === ']')
+        {
+            $data = eval('return ' . $data . ';');
+            return is_array($data) ? implode(',', $data) : '';
+        }
+        return $data;
     }
 }

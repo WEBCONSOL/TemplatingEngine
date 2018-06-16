@@ -23,22 +23,20 @@ final class CompilerUtil
     }
 
     public static function conditionalExpressionTokenizer(string $str): array {
-        $tok = new Tokenizer($str);
-        $statement = array();
-        $list = array('vars' => array(), 'statement' => '');
-        foreach ($tok->tokens as $k=>$token) {
-            if ($token[0] === "." && isset($tok->tokens[$k+1])) {
-                $list['vars'][sizeof($list['vars'])-1] .= $token[1] . $tok->tokens[$k+1][1];
+        $str =  preg_replace('/[\s+]/', '', $str);
+        $list = preg_split('/([\||&|=|!|\(|\)])/', $str);
+        foreach ($list as $i=>$v) {
+            if (!$v) {
+                unset($list[$i]);
             }
-            else if ($token[0] === 319 && (!isset($tok->tokens[$k-1]) || (isset($tok->tokens[$k-1]) && $tok->tokens[$k-1][0] !== '.'))) {
-                $token[1] = '$' . $token[1];
-                $list['vars'][] = str_replace('$', '', $token[1]);
-            }
-
-            $statement[] = $token[1];
         }
-        $list['statement'] = str_replace('.$', '.', implode('', $statement));
-        return $list;
+        $vars = array();
+        $list = array_unique(array_values($list));
+        foreach ($list as $var) {
+            $vars[] = '$'.$var;
+        }
+        $output = array('vars' => $list, 'statement' => str_replace($list, $vars, $str));
+        return $output;
     }
 
     public static function getVarValue(Context &$context, array $vars) {
@@ -59,6 +57,8 @@ final class CompilerUtil
             if ($n1 > $n2) {
                 return null;
             }
+            else {
+            }
         }
         return $val;
     }
@@ -73,5 +73,24 @@ final class CompilerUtil
 
     public static function isLiteral(string $str): bool {
         return substr($str, 0, 2)===ApiAttrs::TAG_EZPZ_OPEN && $str[strlen($str)-1]===ApiAttrs::TAG_EZPZ_CLOSE;
+    }
+
+    public static function parseLiteral(string &$str): array {
+        $matches = array();
+        preg_match_all('/\${(.[^}]*)}/', trim($str), $matches);
+        if (is_array($matches) && sizeof($matches) > 1 && is_array($matches[1]) && isset($matches[1][0]) && strlen($matches[1][0])) {
+            return $matches;
+        }
+        return array();
+    }
+
+    public static function parseLiteralWithContext(string $str): array {
+        $matches = self::parseLiteral($str);
+        $list = array();
+        if (sizeof($matches)) {
+            preg_match('/([^\}|@]*)@([^\}|=]*)context=\'(.[^\}|\)]*)\'/', $matches[1][0], $list);
+            $list = array_filter($list, function($v){return !empty(trim($v));});
+        }
+        return $list;
     }
 }

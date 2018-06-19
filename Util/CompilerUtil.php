@@ -72,7 +72,31 @@ final class CompilerUtil
     }
 
     public static function isLiteral(string $str): bool {
-        return substr($str, 0, 2)===ApiAttrs::TAG_EZPZ_OPEN && $str[strlen($str)-1]===ApiAttrs::TAG_EZPZ_CLOSE;
+        if (substr($str, 0, 2)===ApiAttrs::TAG_EZPZ_OPEN && $str[strlen($str)-1]===ApiAttrs::TAG_EZPZ_CLOSE) {
+            return true;
+        }
+        else {
+            $pattern = '/\${(.[^}]*)}/';
+            $matches = array();
+            preg_match_all($pattern, $str, $matches);
+            if (!empty($matches)) {
+                $splits = preg_split($pattern, $str);
+                if (sizeof($splits) > 1) {
+                    $reverseMatches = array_reverse($matches[0]);
+                    $newSplits = array();
+                    foreach ($splits as $i=>$split) {
+                        $newSplits[] = $split;
+                        if (!empty($reverseMatches)) {
+                            $newSplits[] = array_pop($reverseMatches);
+                        }
+                    }
+                    if (implode('', $newSplits) === $str) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public static function parseLiteral(string &$str): array {

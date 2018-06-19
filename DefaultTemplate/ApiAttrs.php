@@ -29,4 +29,6 @@ class ApiAttrs
     const API_LATELOADER_SERVICES = array(
         self::ELEMENT => "Element"
     );
+
+    private function __construct(){}
 }

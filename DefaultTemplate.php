@@ -61,9 +61,9 @@ final class DefaultTemplate implements EzpzTmplInterface
             $buffer = Html5Util::formatOutput($html5, $dom);
         }
 
-        $this->_compileHtmlELements($buffer, $context);
+        $this->_compileHtmlElements($buffer, $context);
 
-        $this->loadEngine();
+        $this->_loadEngine();
         $engine =& self::$engine;
         if ($engine instanceof Handlebars) {
             if ($tmpl->hasPartialsPath()) {
@@ -96,18 +96,22 @@ final class DefaultTemplate implements EzpzTmplInterface
                     $passed = true;
                     if ($child instanceof \DOMElement)
                     {
-                        foreach ($apiServices as $api => $service)
+                        if ($child->hasAttributes())
                         {
-                            if ($child->hasAttributes() && $child->hasAttribute($api) || NodeUtil::hasApiAttr($child->attributes, $api))
+                            foreach ($apiServices as $api => $service)
                             {
-                                $service = $this->tmplPackagePfx . $service;
-                                $service = new $service;
-
-                                if ($service instanceof CompileInterface)
+                                if ($child->hasAttribute($api) || NodeUtil::hasApiAttr($child->attributes, $api))
                                 {
-                                    $passed = $service($node, $child, $context, $tmpl, $engine);
+                                    $service = $this->tmplPackagePfx . $service;
+                                    $service = new $service;
+                                    if ($service instanceof CompileInterface)
+                                    {
+                                        $passed = $service($node, $child, $context, $tmpl, $engine);
+                                    }
                                 }
                             }
+
+                            $this->_compileAttributeContext($context, $child->attributes);
                         }
                     }
                     if ($passed)
@@ -123,7 +127,11 @@ final class DefaultTemplate implements EzpzTmplInterface
         }
     }
 
-    private function _compileHtmlELements(&$buffer, Context $context) {
+    /**
+     * @param         $buffer
+     * @param Context $context
+     */
+    private function _compileHtmlElements(&$buffer, Context $context) {
         $matches = CompilerUtil::parseLiteral($buffer);
         if (sizeof($matches) > 0 && isset($matches[0]) && isset($matches[1]) && !empty($matches[0]) && !empty($matches[1])) {
             foreach ($matches[1] as $k=>$v) {
@@ -139,6 +147,16 @@ final class DefaultTemplate implements EzpzTmplInterface
                 }
             }
             $buffer = str_replace($matches[0], $matches[1], $buffer);
+        }
+    }
+
+    private function _compileAttributeContext(Context $context, \DOMNamedNodeMap &$attrs)
+    {
+        for ($i = 0; $i < $attrs->length; $i++) {
+            $attr = $attrs->item($i);
+            if (NodeUtil::isNotApiAttr($attr->nodeName) && CompilerUtil::isLiteral($attr->nodeValue)) {
+                $attr->nodeValue = CompileLiteral::getParsedData($context, trim($attr->nodeValue));
+            }
         }
     }
 
@@ -161,7 +179,7 @@ final class DefaultTemplate implements EzpzTmplInterface
         }
     }
 
-    private function loadEngine()
+    private function _loadEngine()
     {
         if (!(self::$engine instanceof Handlebars))
         {

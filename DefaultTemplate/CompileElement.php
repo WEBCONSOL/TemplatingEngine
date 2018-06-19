@@ -9,7 +9,7 @@ use GX2CMS\TemplateEngine\Util\NodeUtil;
 
 class CompileElement implements CompileInterface
 {
-    private $allowedElements = array('div', 'p', 'span', 'em');
+    private $allowedElements = array('div', 'p', 'span', 'em', 'i');
 
     /**
      * @param Context     $context

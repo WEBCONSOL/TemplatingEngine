@@ -31,17 +31,17 @@ class Context implements \JsonSerializable, \Countable
         }
     }
 
-    public function get($k=null, $defult=null) {
-        if ($k !== null && isset($this->data[$k])) {
+    public function get(string $k, $default=null) {
+        if (isset($this->data[$k])) {
             return $this->data[$k];
         }
-        else if ($k===null && $this->valueType === 'string') {
+        else if ($this->valueType === 'string') {
             return end($this->data);
         }
-        return $defult;
+        return $default;
     }
 
-    public function set($k, $v) {
+    public function set(string $k, $v) {
         if ($k !== null) {
             $this->data[$k] = $v;
         }

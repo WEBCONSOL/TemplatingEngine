@@ -2,6 +2,8 @@
 
 namespace GX2CMS\TemplateEngine\Util;
 
+use GX2CMS\TemplateEngine\DefaultTemplate\ApiAttrs;
+
 final class NodeUtil
 {
     private function __construct(){}
@@ -30,10 +32,24 @@ final class NodeUtil
     public static function hasApiAttr(\DOMNamedNodeMap $attrs, $attrName): bool {
 
         foreach($attrs as $attr) {
-            if ($attr instanceof \DOMAttr && StringHelper::startsWith($attr->nodeName, $attrName)) {
+            if ($attr instanceof \DOMAttr && StringUtil::startsWith($attr->nodeName, $attrName)) {
                 return true;
             }
         }
         return false;
     }
+
+    public static function isApiAttr(string $attr): bool {
+        foreach (ApiAttrs::API_SERVICES as $api) {
+            if ($api === $attr) {
+                return true;
+            }
+            else if (StringUtil::startsWith($attr, $api)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static function isNotApiAttr(string $attr): bool {return !self::isApiAttr($attr);}
 }

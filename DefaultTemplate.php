@@ -154,7 +154,8 @@ final class DefaultTemplate implements EzpzTmplInterface
     {
         for ($i = 0; $i < $attrs->length; $i++) {
             $attr = $attrs->item($i);
-            if (NodeUtil::isNotApiAttr($attr->nodeName) && CompilerUtil::isLiteral($attr->nodeValue)) {
+            if ($attr->nodeName !== ApiAttrs::REMOVE && NodeUtil::isNotApiAttr($attr->nodeName) &&
+                CompilerUtil::isLiteral($attr->nodeValue)) {
                 $attr->nodeValue = CompileLiteral::getParsedData($context, trim($attr->nodeValue));
             }
         }
@@ -173,6 +174,9 @@ final class DefaultTemplate implements EzpzTmplInterface
                 foreach ($node->childNodes as $child) {
                     if ($child instanceof \DOMElement) {
                         $this->_remove($node, $child);
+                    }
+                    else if ($child->nodeName === '#comment') {
+                        $node->removeChild($child);
                     }
                 }
             }

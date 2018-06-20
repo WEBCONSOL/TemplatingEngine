@@ -11,12 +11,14 @@ final class Html5Util
         '&lt;',
         '&gt;',
         '<sly>',
+        '<sly data-ezpz-remove="true">',
         '</sly>'
     );
     public static $replaces = array(
         '&&',
         '<',
         '>',
+        '',
         '',
         ''
     );

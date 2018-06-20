@@ -2,6 +2,7 @@
 
 namespace GX2CMS\TemplateEngine\DefaultTemplate;
 
+use GX2CMS\Lib\Util;
 use GX2CMS\TemplateEngine\EzpzTmplInterface;
 use GX2CMS\TemplateEngine\Model\Context;
 use GX2CMS\TemplateEngine\Model\Tmpl;
@@ -21,10 +22,8 @@ class CompileLiteral
         {
             $parts = explode("\n", $data);
             foreach ($parts as $i=>$item) {
-
                 $l = array();
                 preg_match('/\${{this}}/', $item, $l);
-
                 if (!empty($l)) {
                     $parts[$i] = str_replace($l[0], '{{{this}}}', $item);
                 }
@@ -45,6 +44,9 @@ class CompileLiteral
                     $callback = self::getCallback($str);
                     if (strlen($callback)) {
                         $arr[1][$i] = $callback($context, $str);
+                    }
+                    else {
+                        $arr[1][$i] = $str;
                     }
                 }
                 $data = str_replace($arr[0], $arr[1], $data);
@@ -187,7 +189,7 @@ class CompileLiteral
         }
         else if ($first === "[" && $last === ']')
         {
-            $data = eval('return ' . $data . ';');
+            $data = json_decode($data, true);
             return is_array($data) ? implode(',', $data) : '';
         }
         return $data;

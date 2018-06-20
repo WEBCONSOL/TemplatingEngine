@@ -22,6 +22,11 @@ class CompileList implements CompileInterface
         if (is_array($list) && sizeof($list) > 2 && trim($list[1]) === 'item') {
             $child->nodeValue = str_replace($list[0], '{this}', $child->nodeValue);
         }
+        else {
+            $pattern = array('${item.', '${ item.');
+            $replace = array('${this.', '${this.');
+            $child->nodeValue = str_replace($pattern, $replace, $child->nodeValue);
+        }
 
         $attr = $child->getAttribute(ApiAttrs::LIST);
         $child->removeAttribute(ApiAttrs::LIST);

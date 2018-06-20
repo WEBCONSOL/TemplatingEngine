@@ -39,10 +39,13 @@ class CompileTest implements CompileInterface
                         $parts = explode('.', $var);
                         if (sizeof($parts) > 1) {
                             $val = CompilerUtil::getVarValue($context, $parts);
+                            $newVarName = preg_replace('/[^A-Za-z0-9]/', '_', $var);
+                            $statement = str_replace($var, $newVarName, $statement);
                             if ($val) {
-                                $newVarName = preg_replace('/[^A-Za-z0-9]/', '_', $var);
-                                $statement = str_replace($var, $newVarName, $statement);
                                 ${$newVarName} = true;
+                            }
+                            else {
+                                ${$newVarName} = false;
                             }
                         }
                     }

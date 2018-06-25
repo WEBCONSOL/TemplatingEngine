@@ -33,7 +33,7 @@ final class CompilerUtil
         $vars = array();
         $list = array_unique(array_values($list));
         foreach ($list as $var) {
-            $vars[] = '$'.$var;
+            $vars[] = is_numeric($var) ? $var : '$'.$var;
         }
         $output = array('vars' => $list, 'statement' => str_replace($list, $vars, $str));
         return $output;

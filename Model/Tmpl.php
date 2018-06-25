@@ -2,6 +2,8 @@
 
 namespace GX2CMS\TemplateEngine\Model;
 
+use GX2CMS\Lib\Util;
+
 class Tmpl
 {
     private $content;
@@ -18,12 +20,12 @@ class Tmpl
     {
         if (file_exists($var))
         {
-            $this->content = file_get_contents($var);
+            $this->content = Util::removeHtmlComments(file_get_contents($var));
             $this->type = 'file';
         }
         else
         {
-            $this->content = $var;
+            $this->content = Util::removeHtmlComments($var);
         }
     }
 

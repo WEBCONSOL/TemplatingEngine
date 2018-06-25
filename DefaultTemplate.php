@@ -2,6 +2,7 @@
 
 namespace GX2CMS\TemplateEngine;
 
+use GX2CMS\Lib\Util;
 use Handlebars\Handlebars;
 use Handlebars\Loader\FilesystemLoader;
 use Masterminds\HTML5;

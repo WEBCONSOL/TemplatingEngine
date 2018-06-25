@@ -36,32 +36,45 @@ final class DefaultTemplate implements EzpzTmplInterface
      */
     public function compile(Context $context, Tmpl $tmpl): string
     {
-        $html5 = new HTML5();
-        $dom = $html5->loadHTML($tmpl);
-
-        foreach ($dom->childNodes as $node)
+        if ($this->_hasTag($tmpl))
         {
-            $this->_compile($html5, $node, $context, $tmpl, $this, ApiAttrs::API_SERVICES);
-        }
+            $html5 = new HTML5();
+            $dom = $html5->loadHTML($tmpl);
 
-        foreach ($dom->childNodes as $node)
+            foreach ($dom->childNodes as $node)
+            {
+                if ($node instanceof \DOMElement) {
+                    $this->_compile($html5, $node, $context, $tmpl, $this, ApiAttrs::API_SERVICES);
+                }
+            }
+
+            foreach ($dom->childNodes as $node)
+            {
+                if ($node instanceof \DOMElement) {
+                    $this->_compile($html5, $node, $context, $tmpl, $this, ApiAttrs::API_LATELOADER_SERVICES);
+                }
+            }
+
+            foreach ($dom->childNodes as $node)
+            {
+                if ($node instanceof \DOMElement) {
+                    $this->_remove($dom, $node);
+                }
+            }
+
+            if ($tmpl->isDOC()) {
+                $buffer = Html5Util::formatOutput($html5, $dom, false);
+            }
+            else {
+                $buffer = Html5Util::formatOutput($html5, $dom);
+            }
+
+            $this->_compileHtmlElements($buffer, $context);
+        }
+        else
         {
-            $this->_compile($html5, $node, $context, $tmpl, $this, ApiAttrs::API_LATELOADER_SERVICES);
+            $buffer = CompileLiteral::getParsedData($context, $tmpl->getContent());
         }
-
-        foreach ($dom->childNodes as $node)
-        {
-            $this->_remove($dom, $node);
-        }
-
-        if ($tmpl->isDOC()) {
-            $buffer = Html5Util::formatOutput($html5, $dom, false);
-        }
-        else {
-            $buffer = Html5Util::formatOutput($html5, $dom);
-        }
-
-        $this->_compileHtmlElements($buffer, $context);
 
         $this->_loadEngine();
         $engine =& self::$engine;
@@ -78,6 +91,17 @@ final class DefaultTemplate implements EzpzTmplInterface
         }
 
         return $buffer;
+    }
+
+    /**
+     * @param Tmpl $tmpl
+     *
+     * @return bool
+     */
+    private function _hasTag(Tmpl $tmpl): bool
+    {
+        $noTag = strip_tags($tmpl->getContent());
+        return $noTag !== $tmpl->getContent();
     }
 
     /**

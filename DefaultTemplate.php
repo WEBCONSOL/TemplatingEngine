@@ -2,7 +2,6 @@
 
 namespace GX2CMS\TemplateEngine;
 
-use GX2CMS\Lib\Util;
 use Handlebars\Handlebars;
 use Handlebars\Loader\FilesystemLoader;
 use Masterminds\HTML5;
@@ -77,21 +76,15 @@ final class DefaultTemplate implements EzpzTmplInterface
             $buffer = CompileLiteral::getParsedData($context, $tmpl->getContent());
         }
 
-        $this->_loadEngine();
-        $engine =& self::$engine;
-        if ($engine instanceof Handlebars) {
-            if ($tmpl->hasPartialsPath()) {
-                $engine->setPartialsLoader(new FilesystemLoader(
-                    $tmpl->getPartialsPath(),
-                    array(
-                        'extension' => '.html'
-                    )
-                ));
-            }
-            return $engine->render(preg_replace('/}}}}+/', ApiAttrs::TAG_HB_CLOSE, $buffer), $context->getAsArray());
+        if ($tmpl->hasPartialsPath()) {
+            $this->engine()->setPartialsLoader(new FilesystemLoader(
+                $tmpl->getPartialsPath(),
+                array(
+                    'extension' => '.html'
+                )
+            ));
         }
-
-        return $buffer;
+        return $this->engine()->render(preg_replace('/}}}}+/', ApiAttrs::TAG_HB_CLOSE, $buffer), $context->getAsArray());
     }
 
     /**
@@ -208,7 +201,7 @@ final class DefaultTemplate implements EzpzTmplInterface
         }
     }
 
-    private function _loadEngine()
+    private function engine(): Handlebars
     {
         if (!(self::$engine instanceof Handlebars))
         {
@@ -224,5 +217,7 @@ final class DefaultTemplate implements EzpzTmplInterface
                 self::$engine->addHelper(str_replace('helper', '', strtolower($last)), new $cls);
             }
         }
+
+        return self::$engine;
     }
 }

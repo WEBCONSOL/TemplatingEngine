@@ -61,7 +61,7 @@ class CompileLiteral
             }
         }
 
-        return trim($data, "\n\r\t\s");
+        return trim($data);
     }
 
     /**
@@ -166,7 +166,14 @@ class CompileLiteral
      * @return string
      */
     private static function handleVariable(Context &$context, string $data): string {
-        return $context->has($data) ? $context->get($data) : self::handleConstant($data);
+        if ($context->has($data)) {
+            return $context->get($data);
+        }
+        $val = CompilerUtil::getVarValue($context, explode('.', CompilerUtil::removeOpenCloseEzpzTag($data)));
+        if ($val) {
+            return is_array($val) || is_object($val) ? json_encode($val) : $val;
+        }
+        return self::handleConstant($data);
     }
 
     /**

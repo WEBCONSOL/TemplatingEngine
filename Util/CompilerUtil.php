@@ -71,6 +71,10 @@ final class CompilerUtil
         );
     }
 
+    public static function removeOpenCloseEzpzTag(string $str): string {
+        return str_replace(array(ApiAttrs::TAG_EZPZ_OPEN, ApiAttrs::TAG_EZPZ_CLOSE), '', $str);
+    }
+
     public static function isLiteral(string $str): bool {
         if (substr($str, 0, 2)===ApiAttrs::TAG_EZPZ_OPEN && $str[strlen($str)-1]===ApiAttrs::TAG_EZPZ_CLOSE) {
             return true;

@@ -20,6 +20,8 @@ final class DefaultTemplate implements EzpzTmplInterface
 {
     private $handlebarsHelperPackage = '\GX2CMS\TemplateEngine\Handlebars\Helper';
     private static $engine = null;
+    private static $styles = array();
+    private static $scripts = array();
     private $tmplPackagePfx = null;
     private $hasElementApiAttr = false;
 
@@ -39,10 +41,13 @@ final class DefaultTemplate implements EzpzTmplInterface
      */
     public function compile(Context $context, Tmpl $tmpl): string
     {
-        if ($this->_hasTag($tmpl))
+        $buffer = $tmpl->getContent();
+        $this->_sly2ezpz($buffer);
+
+        if ($this->_hasTag($buffer))
         {
             $html5 = new HTML5();
-            $dom = $html5->loadHTML($tmpl);
+            $dom = $html5->loadHTML($buffer);
 
             foreach ($dom->childNodes as $node)
             {
@@ -81,7 +86,7 @@ final class DefaultTemplate implements EzpzTmplInterface
         }
         else
         {
-            $buffer = CompileLiteral::getParsedData($context, $tmpl->getContent());
+            $buffer = CompileLiteral::getParsedData($context, $buffer);
         }
 
         if ($tmpl->hasPartialsPath())
@@ -97,15 +102,31 @@ final class DefaultTemplate implements EzpzTmplInterface
         return $this->engine()->render(preg_replace('/}}}}+/', ApiAttrs::TAG_HB_CLOSE, $buffer), $context->getAsArray());
     }
 
+    public function hasScript(string $src): bool {
+        if (!in_array($src, self::$scripts)) {
+            self::$scripts[] = $src;
+            return false;
+        }
+        return true;
+    }
+
+    public function hasStyle(string $href): bool {
+        if (!in_array($href, self::$styles)) {
+            self::$styles[] = $href;
+            return false;
+        }
+        return true;
+    }
+
     /**
      * @param Tmpl $tmpl
      *
      * @return bool
      */
-    private function _hasTag(Tmpl $tmpl): bool
+    private function _hasTag(string $buffer): bool
     {
-        $noTag = strip_tags($tmpl->getContent());
-        return $noTag !== $tmpl->getContent();
+        $noTag = strip_tags($buffer);
+        return $noTag !== $buffer;
     }
 
     /**
@@ -240,5 +261,9 @@ final class DefaultTemplate implements EzpzTmplInterface
         }
 
         return self::$engine;
+    }
+
+    private function _sly2ezpz(string &$tmpl) {
+        $tmpl = str_replace(array('<sly','</sly','-sly-'), array('<ezpz','</ezpz','-ezpz-'), $tmpl);
     }
 }

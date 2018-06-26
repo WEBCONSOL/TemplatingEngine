@@ -42,4 +42,6 @@ final class Ezpz
     {
         return $this->engine->compile($context, $tmpl);
     }
+
+    public function getEngine(): EzpzTmplInterface {return $this->engine;}
 }

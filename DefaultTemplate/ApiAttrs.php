@@ -16,6 +16,7 @@ class ApiAttrs
     const INCLUDE = "data-ezpz-include";
     const ELEMENT = "data-ezpz-element";
     const ATTRIBUTE = "data-ezpz-attribute";
+    const RESOURCE = "data-ezpz-resource";
 
     const REMOVE = "data-ezpz-remove";
 
@@ -23,7 +24,8 @@ class ApiAttrs
         self::TEST => "Test",
         self::LIST => "List",
         self::INCLUDE => "Partial",
-        self::ATTRIBUTE => "Attribute"
+        self::ATTRIBUTE => "Attribute",
+        self::RESOURCE => "Resource"
     );
 
     const API_LATELOADER_SERVICES = array(

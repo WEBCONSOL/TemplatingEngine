@@ -10,6 +10,9 @@ class Tmpl
     private $type = 'string';
     private $partialsPath = '';
     private $isDOC = false;
+    private $root = '';
+    private $webRoot = '';
+    private $clientLibsPathFormat = '';
 
     /**
      * Tmpl constructor.
@@ -62,6 +65,26 @@ class Tmpl
      * @return string
      */
     public function getPartialsPath(): string {return rtrim($this->partialsPath, '/') . '/';}
+
+    public function hasPartialPath(): bool {return strlen($this->partialsPath) > 0;}
+
+    public function setRoot(string $path) {$this->root = $path;}
+
+    public function getRoot(): string {return $this->root;}
+
+    public function hasRoot(): bool {return strlen($this->root) > 0;}
+
+    public function setWebRoot(string $path) {$this->webRoot = $path;}
+
+    public function getWebRoot(): string {return $this->webRoot;}
+
+    public function hasWebRoot(): bool {return strlen($this->webRoot) > 0;}
+
+    public function setClientlibsPathFormat(string $path) {$this->clientLibsPathFormat = $path;}
+
+    public function getClientlibsPathFormat(): string {return $this->clientLibsPathFormat;}
+
+    public function hasClientlibsPathFormat(): bool {return strlen($this->clientLibsPathFormat) > 0;}
 
     /**
      * @return string

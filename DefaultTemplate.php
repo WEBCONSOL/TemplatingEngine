@@ -2,6 +2,7 @@
 
 namespace GX2CMS\TemplateEngine;
 
+use GX2CMS\Lib\Util;
 use Handlebars\Handlebars;
 use Handlebars\Loader\FilesystemLoader;
 use Masterminds\HTML5;
@@ -14,11 +15,13 @@ use GX2CMS\TemplateEngine\Util\CompilerUtil;
 use GX2CMS\TemplateEngine\Util\Html5Util;
 use GX2CMS\TemplateEngine\Util\NodeUtil;
 
+
 final class DefaultTemplate implements EzpzTmplInterface
 {
-    const HANDLEBARS_HELPERS_PACKATE = '\\GX2CMS\\TemplateEngine\\Handlebars\\Helper\\';
+    private $handlebarsHelperPackage = '\GX2CMS\TemplateEngine\Handlebars\Helper';
     private static $engine = null;
     private $tmplPackagePfx = null;
+    private $hasElementApiAttr = false;
 
     /**
      * DefaultTemplate constructor.
@@ -48,10 +51,13 @@ final class DefaultTemplate implements EzpzTmplInterface
                 }
             }
 
-            foreach ($dom->childNodes as $node)
+            if ($this->hasElementApiAttr)
             {
-                if ($node instanceof \DOMElement) {
-                    $this->_compile($html5, $node, $context, $tmpl, $this, ApiAttrs::API_LATELOADER_SERVICES);
+                foreach ($dom->childNodes as $node)
+                {
+                    if ($node instanceof \DOMElement) {
+                        $this->_compile($html5, $node, $context, $tmpl, $this, ApiAttrs::API_LATELOADER_SERVICES);
+                    }
                 }
             }
 
@@ -62,10 +68,12 @@ final class DefaultTemplate implements EzpzTmplInterface
                 }
             }
 
-            if ($tmpl->isDOC()) {
+            if ($tmpl->isDOC())
+            {
                 $buffer = Html5Util::formatOutput($html5, $dom, false);
             }
-            else {
+            else
+            {
                 $buffer = Html5Util::formatOutput($html5, $dom);
             }
 
@@ -76,7 +84,8 @@ final class DefaultTemplate implements EzpzTmplInterface
             $buffer = CompileLiteral::getParsedData($context, $tmpl->getContent());
         }
 
-        if ($tmpl->hasPartialsPath()) {
+        if ($tmpl->hasPartialsPath())
+        {
             $this->engine()->setPartialsLoader(new FilesystemLoader(
                 $tmpl->getPartialsPath(),
                 array(
@@ -84,6 +93,7 @@ final class DefaultTemplate implements EzpzTmplInterface
                 )
             ));
         }
+
         return $this->engine()->render(preg_replace('/}}}}+/', ApiAttrs::TAG_HB_CLOSE, $buffer), $context->getAsArray());
     }
 
@@ -111,10 +121,16 @@ final class DefaultTemplate implements EzpzTmplInterface
             {
                 foreach ($node->childNodes as $child)
                 {
+
                     $passed = true;
+
                     if ($child instanceof \DOMElement)
                     {
-                        if ($child->hasAttributes())
+                        if ($child->nodeName === 'script' && $child->getAttribute('type') === 'text/x-handlebars-template')
+                        {
+                            $passed = false;
+                        }
+                        else if ($child->hasAttributes())
                         {
                             foreach ($apiServices as $api => $service)
                             {
@@ -132,6 +148,7 @@ final class DefaultTemplate implements EzpzTmplInterface
                             $this->_compileAttributeContext($context, $child->attributes);
                         }
                     }
+
                     if ($passed)
                     {
                         $this->_compile($html5, $child, $context, $tmpl, $engine, $apiServices);
@@ -149,7 +166,8 @@ final class DefaultTemplate implements EzpzTmplInterface
      * @param         $buffer
      * @param Context $context
      */
-    private function _compileHtmlElements(&$buffer, Context $context) {
+    private function _compileHtmlElements(&$buffer, Context $context)
+    {
         $matches = CompilerUtil::parseLiteral($buffer);
         if (sizeof($matches) > 0 && isset($matches[0]) && isset($matches[1]) && !empty($matches[0]) && !empty($matches[1])) {
             foreach ($matches[1] as $k=>$v) {
@@ -172,7 +190,10 @@ final class DefaultTemplate implements EzpzTmplInterface
     {
         for ($i = 0; $i < $attrs->length; $i++) {
             $attr = $attrs->item($i);
-            if ($attr->nodeName !== ApiAttrs::REMOVE && NodeUtil::isNotApiAttr($attr->nodeName) &&
+            if (Util::startsWith($attr->nodeName, ApiAttrs::ELEMENT)) {
+                $this->hasElementApiAttr = true;
+            }
+            else if ($attr->nodeName !== ApiAttrs::REMOVE && NodeUtil::isNotApiAttr($attr->nodeName) &&
                 CompilerUtil::isLiteral($attr->nodeValue)) {
                 $attr->nodeValue = CompileLiteral::getParsedData($context, trim($attr->nodeValue));
             }
@@ -213,7 +234,7 @@ final class DefaultTemplate implements EzpzTmplInterface
             {
                 $parts = explode(DS, $helper);
                 $last = str_replace('.php', '', end($parts));
-                $cls = self::HANDLEBARS_HELPERS_PACKATE . $last;
+                $cls = $this->handlebarsHelperPackage . '\\' . $last;
                 self::$engine->addHelper(str_replace('helper', '', strtolower($last)), new $cls);
             }
         }

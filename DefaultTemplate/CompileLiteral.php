@@ -18,7 +18,12 @@ class CompileLiteral
      */
     public static function getParsedData(Context $context, string $data): string
     {
-        if (preg_match('/(\${{this}})/', $data))
+        if (preg_match('/(\${item})/', $data))
+        {
+            $data = preg_replace('/\${item}/', '{{this}}', $data);
+        }
+        /*
+        else if (preg_match('/(\${{this}})/', $data))
         {
             $parts = explode("\n", $data);
             foreach ($parts as $i=>$item) {
@@ -36,8 +41,10 @@ class CompileLiteral
             }
             $data = implode("\n", $parts);
         }
+        */
         else if (strlen($data))
         {
+            /*
             $arr = CompilerUtil::parseLiteral($data);
             if (!empty($arr)) {
                 foreach ($arr[0] as $i=>$str) {
@@ -58,6 +65,12 @@ class CompileLiteral
                 if (strlen($callback)) {
                     $data = $callback($context, $data);
                 }
+            }
+            */
+            $callback = self::getCallback($data);
+            if ($callback) {
+                $data = $callback($context, $data);
+                $data = str_replace('{item}', '{this}', $data);
             }
         }
 

@@ -14,12 +14,12 @@ final class Ezpz
      *
      * @param $engine
      */
-    public function __construct(EzpzTmplInterface $engine=null)
+    public function __construct(InterfaceEzpzTmpl $engine=null)
     {
         if ($engine === null) {
             $this->loadEngine(new DefaultTemplate());
         }
-        else if ($engine instanceof EzpzTmplInterface) {
+        else if ($engine instanceof InterfaceEzpzTmpl) {
             $this->engine = $engine;
         }
         else {
@@ -28,9 +28,14 @@ final class Ezpz
     }
 
     /**
-     * @param EzpzTmplInterface $engine
+     * @param InterfacePlugin $plugin
      */
-    public function loadEngine(EzpzTmplInterface $engine) {$this->engine = $engine;}
+    public function addPluginToEngine(InterfacePlugin $plugin) {$this->engine->addPlugin($plugin);}
+
+    /**
+     * @param InterfaceEzpzTmpl $engine
+     */
+    public function loadEngine(InterfaceEzpzTmpl $engine) {$this->engine = $engine;}
 
     /**
      * @param Context $context
@@ -43,5 +48,5 @@ final class Ezpz
         return $this->engine->compile($context, $tmpl);
     }
 
-    public function getEngine(): EzpzTmplInterface {return $this->engine;}
+    public function getEngine(): InterfaceEzpzTmpl {return $this->engine;}
 }

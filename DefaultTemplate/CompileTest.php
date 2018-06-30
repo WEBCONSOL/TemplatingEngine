@@ -2,7 +2,7 @@
 
 namespace GX2CMS\TemplateEngine\DefaultTemplate;
 
-use GX2CMS\TemplateEngine\EzpzTmplInterface;
+use GX2CMS\TemplateEngine\InterfaceEzpzTmpl;
 use GX2CMS\TemplateEngine\Model\Context;
 use GX2CMS\TemplateEngine\Model\Tmpl;
 use GX2CMS\TemplateEngine\Util\CompilerUtil;
@@ -10,13 +10,15 @@ use GX2CMS\TemplateEngine\Util\CompilerUtil;
 class CompileTest implements CompileInterface
 {
     /**
-     * @param Context     $context
-     * @param \DOMElement $node
-     * @param \DOMElement $child
+     * @param \DOMElement       $node
+     * @param \DOMElement       $child
+     * @param Context           $context
+     * @param Tmpl              $tmpl
+     * @param InterfaceEzpzTmpl $engine
      *
      * @return bool
      */
-    public function __invoke(\DOMElement &$node, \DOMElement &$child, Context $context, Tmpl $tmpl, EzpzTmplInterface $engine): bool
+    public function __invoke(\DOMElement &$node, \DOMElement &$child, Context &$context, Tmpl &$tmpl, InterfaceEzpzTmpl &$engine): bool
     {
         $matches = CompilerUtil::parseLiteral($child->getAttribute(ApiAttrs::TEST));
 

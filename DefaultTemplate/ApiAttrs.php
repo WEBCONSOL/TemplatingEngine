@@ -17,6 +17,7 @@ class ApiAttrs
     const ELEMENT = "data-ezpz-element";
     const ATTRIBUTE = "data-ezpz-attribute";
     const RESOURCE = "data-ezpz-resource";
+    const USE = "data-ezpz-use";
 
     const REMOVE = "data-ezpz-remove";
 
@@ -25,12 +26,17 @@ class ApiAttrs
         self::LIST => "List",
         self::INCLUDE => "Partial",
         self::ATTRIBUTE => "Attribute",
-        self::RESOURCE => "Resource"
+        self::RESOURCE => "Resource",
+        self::USE => "Use"
     );
 
     const API_LATELOADER_SERVICES = array(
         self::ELEMENT => "Element"
     );
+
+    const PARSYS = "wcm/foundation/components/parsys";
+
+    const DATA_SELECTOR = "data-selector";
 
     private function __construct(){}
 }

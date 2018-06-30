@@ -103,10 +103,10 @@ final class CompilerUtil
         return false;
     }
 
-    public static function parseLiteral(string &$str): array {
+    public static function parseLiteral(string $str): array {
         $matches = array();
         preg_match_all('/\${(.[^}]*)}/', trim($str), $matches);
-        if (is_array($matches) && sizeof($matches) > 1 && is_array($matches[1]) && isset($matches[1][0]) && strlen($matches[1][0])) {
+        if (self::matchesFound($matches)) {
             return $matches;
         }
         return array();
@@ -120,5 +120,12 @@ final class CompilerUtil
             $list = array_filter($list, function($v){return !empty(trim($v));});
         }
         return $list;
+    }
+
+    public static function matchesFound(array &$matches): bool {
+        if (sizeof($matches) > 1 && is_array($matches[1]) && isset($matches[1][0]) && strlen($matches[1][0])) {
+            return true;
+        }
+        return false;
     }
 }

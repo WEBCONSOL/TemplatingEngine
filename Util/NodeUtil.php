@@ -40,7 +40,7 @@ final class NodeUtil
     }
 
     public static function isApiAttr(string $attr): bool {
-        foreach (ApiAttrs::API_SERVICES as $api) {
+        foreach (ApiAttrs::API_SERVICES as $api=>$val) {
             if ($api === $attr) {
                 return true;
             }

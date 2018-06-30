@@ -10,9 +10,6 @@ class Tmpl
     private $type = 'string';
     private $partialsPath = '';
     private $isDOC = false;
-    private $root = '';
-    private $webRoot = '';
-    private $clientLibsPathFormat = '';
 
     /**
      * Tmpl constructor.
@@ -21,7 +18,14 @@ class Tmpl
      */
     public function __construct(string $var)
     {
-        if (file_exists($var))
+        $this->reset($var);
+    }
+
+    public function reset(string $var)
+    {
+        $hasDS = sizeof(explode('/', $var)) || sizeof(explode('\\', $var));
+
+        if ($hasDS && pathinfo($var, PATHINFO_EXTENSION) === 'html' && file_exists($var))
         {
             $this->content = Util::removeHtmlComments(file_get_contents($var));
             $this->type = 'file';
@@ -48,13 +52,19 @@ class Tmpl
     public function isEmpty(): bool {return empty($this->content);}
 
     /**
+     * @param bool $isDoc
+     */
+    public function loadWholeDOC(bool $isDoc) {$this->isDOC = $isDoc;}
+
+    /**
+     * @return bool
+     */
+    public function isDOC(): bool {return $this->isDOC;}
+
+    /**
      * @param string $path
      */
     public function setPartialsPath(string $path) {$this->partialsPath = $path;}
-
-    public function loadWholeDOC(bool $isDoc) {$this->isDOC = $isDoc;}
-
-    public function isDOC(): bool {return $this->isDOC;}
 
     /**
      * @return bool
@@ -66,25 +76,10 @@ class Tmpl
      */
     public function getPartialsPath(): string {return rtrim($this->partialsPath, '/') . '/';}
 
+    /**
+     * @return bool
+     */
     public function hasPartialPath(): bool {return strlen($this->partialsPath) > 0;}
-
-    public function setRoot(string $path) {$this->root = $path;}
-
-    public function getRoot(): string {return $this->root;}
-
-    public function hasRoot(): bool {return strlen($this->root) > 0;}
-
-    public function setWebRoot(string $path) {$this->webRoot = $path;}
-
-    public function getWebRoot(): string {return $this->webRoot;}
-
-    public function hasWebRoot(): bool {return strlen($this->webRoot) > 0;}
-
-    public function setClientlibsPathFormat(string $path) {$this->clientLibsPathFormat = $path;}
-
-    public function getClientlibsPathFormat(): string {return $this->clientLibsPathFormat;}
-
-    public function hasClientlibsPathFormat(): bool {return strlen($this->clientLibsPathFormat) > 0;}
 
     /**
      * @return string

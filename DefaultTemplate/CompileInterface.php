@@ -2,7 +2,7 @@
 
 namespace GX2CMS\TemplateEngine\DefaultTemplate;
 
-use GX2CMS\TemplateEngine\EzpzTmplInterface;
+use GX2CMS\TemplateEngine\InterfaceEzpzTmpl;
 use GX2CMS\TemplateEngine\Model\Context;
 use GX2CMS\TemplateEngine\Model\Tmpl;
 
@@ -15,5 +15,5 @@ interface CompileInterface
      *
      * @return bool
      */
-    public function __invoke(\DOMElement &$node, \DOMElement &$child, Context $context, Tmpl $tmpl, EzpzTmplInterface $engine): bool;
+    public function __invoke(\DOMElement &$node, \DOMElement &$child, Context &$context, Tmpl &$tmpl, InterfaceEzpzTmpl &$engine): bool;
 }

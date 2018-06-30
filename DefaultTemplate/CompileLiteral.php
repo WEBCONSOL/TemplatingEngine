@@ -3,10 +3,11 @@
 namespace GX2CMS\TemplateEngine\DefaultTemplate;
 
 use GX2CMS\Lib\Util;
-use GX2CMS\TemplateEngine\EzpzTmplInterface;
+use GX2CMS\TemplateEngine\InterfaceEzpzTmpl;
 use GX2CMS\TemplateEngine\Model\Context;
 use GX2CMS\TemplateEngine\Model\Tmpl;
 use GX2CMS\TemplateEngine\Util\CompilerUtil;
+use GX2CMS\TemplateEngine\Util\TernaryParser;
 
 class CompileLiteral
 {
@@ -18,55 +19,16 @@ class CompileLiteral
      */
     public static function getParsedData(Context $context, string $data): string
     {
-        if (preg_match('/(\${item})/', $data))
+        if (TernaryParser::isTernary($data))
+        {
+            return TernaryParser::parse($context, $data);
+        }
+        else if (preg_match('/(\${item})/', $data))
         {
             $data = preg_replace('/\${item}/', '{{this}}', $data);
         }
-        /*
-        else if (preg_match('/(\${{this}})/', $data))
-        {
-            $parts = explode("\n", $data);
-            foreach ($parts as $i=>$item) {
-                $l = array();
-                preg_match('/\${{this}}/', $item, $l);
-                if (!empty($l)) {
-                    $parts[$i] = str_replace($l[0], '{{{this}}}', $item);
-                }
-                else {
-                    $callback = self::getCallback($item);
-                    if (strlen($callback)) {
-                        $parts[$i] = $callback($context, $item);
-                    }
-                }
-            }
-            $data = implode("\n", $parts);
-        }
-        */
         else if (strlen($data))
         {
-            /*
-            $arr = CompilerUtil::parseLiteral($data);
-            if (!empty($arr)) {
-                foreach ($arr[0] as $i=>$str) {
-                    $callback = self::getCallback($str);
-                    if (strlen($callback)) {
-                        $arr[1][$i] = $callback($context, $str);
-                    }
-                    else {
-                        $arr[1][$i] = $str;
-                    }
-                }
-                $data = str_replace($arr[0], $arr[1], $data);
-            }
-            else {
-                $l = preg_split('/\${/', $data);
-                $data = implode("\n".'${', $l);
-                $callback = self::getCallback($data);
-                if (strlen($callback)) {
-                    $data = $callback($context, $data);
-                }
-            }
-            */
             $callback = self::getCallback($data);
             if ($callback) {
                 $data = $callback($context, $data);
@@ -78,10 +40,12 @@ class CompileLiteral
     }
 
     /**
-     * @param Context  $context
-     * @param \DOMText $node
+     * @param \DOMText          $node
+     * @param Context           $context
+     * @param Tmpl              $tmpl
+     * @param InterfaceEzpzTmpl $engine
      */
-    public static function process(\DOMText &$node, Context $context, Tmpl $tmpl, EzpzTmplInterface $engine)
+    public static function process(\DOMText &$node, Context &$context, Tmpl &$tmpl, InterfaceEzpzTmpl &$engine)
     {
         if (isset($node->data))
         {
@@ -179,10 +143,11 @@ class CompileLiteral
      * @return string
      */
     private static function handleVariable(Context &$context, string $data): string {
-        if ($context->has($data)) {
-            return $context->get($data);
+        $var = CompilerUtil::removeOpenCloseEzpzTag($data);
+        if ($context->has($var)) {
+            return $context->get($var);
         }
-        $val = CompilerUtil::getVarValue($context, explode('.', CompilerUtil::removeOpenCloseEzpzTag($data)));
+        $val = CompilerUtil::getVarValue($context, explode('.', $var));
         if ($val) {
             return is_array($val) || is_object($val) ? json_encode($val) : $val;
         }
@@ -195,23 +160,23 @@ class CompileLiteral
      * @return string
      */
     private static function handleConstant(string $data): string {
-
-        $first = $data[0];
-        $last = $data[strlen($data)-1];
+        $var = CompilerUtil::removeOpenCloseEzpzTag($data);
+        $first = $var[0];
+        $last = $var[strlen($var)-1];
 
         if (($first === "'" && $last === "'") || ($first === '"' && $last === '"'))
         {
-            return substr($data, 1, -1);
+            return substr($var, 1, -1);
         }
-        else if (is_bool($data) || is_numeric($data) || $data === 'true' || $data === 'false')
+        else if (is_bool($var) || is_numeric($var) || $var === 'true' || $var === 'false')
         {
-            return $data;
+            return $var;
         }
         else if ($first === "[" && $last === ']')
         {
-            $data = json_decode($data, true);
-            return is_array($data) ? implode(',', $data) : '';
+            $var = json_decode($var, true);
+            return is_array($var) ? implode(',', $var) : '';
         }
-        return $data;
+        return CompilerUtil::openCloseHBTag($data);
     }
 }

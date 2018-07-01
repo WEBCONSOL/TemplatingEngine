@@ -22,8 +22,6 @@ class ApiAttrs
     const ELEMENT = "data-ezpz-element";
     const ATTRIBUTE = "data-ezpz-attribute";
 
-    const REMOVE = "data-ezpz-remove";
-
     const API_SERVICES = array(
         self::TEST => "Test",
         self::LIST => "List",

@@ -4,7 +4,6 @@ namespace GX2CMS\TemplateEngine;
 
 use GX2CMS\Lib\Response;
 use GX2CMS\Lib\Util;
-use GX2CMS\TemplateEngine\Util\PregUtil;
 use GX2CMS\TemplateEngine\Util\StringUtil;
 use Handlebars\Handlebars;
 use Handlebars\Loader\FilesystemLoader;
@@ -59,9 +58,11 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
                 }
             }
 
-            foreach ($dom->childNodes as $node) {
-                if ($node instanceof \DOMElement) {
-                    $this->compileLateLoader($html5, $node, $context, $tmpl, $this);
+            if ($this->hasElementApiAttr) {
+                foreach ($dom->childNodes as $node) {
+                    if ($node instanceof \DOMElement) {
+                        $this->compileLateLoader($html5, $node, $context, $tmpl, $this);
+                    }
                 }
             }
 
@@ -119,7 +120,6 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
                             foreach ($apiServices as $api => $service) {
 
                                 if ($child->hasAttribute($api) || NodeUtil::hasApiAttr($child->attributes, $api)) {
-
                                     $service = $this->tmplPackagePfx . $service;
                                     $service = new $service;
                                     if ($service instanceof CompileInterface) {
@@ -140,24 +140,6 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
         }
         else if ($node instanceof \DOMText) {
             //CompileLiteral::process($node, $context);
-        }
-    }
-
-    private function fetchNode(&$node, $attrName, $attrVal, &$foundNode) {
-        if ($foundNode === null) {
-            if ($node->hasAttributes()) {
-                foreach ($node->attributes as $attribute) {
-                    if ($attribute->nodeName === $attrName && $attribute->nodeValue === $attrVal) {
-                        $foundNode = $node;
-                        break;
-                    }
-                }
-            }
-            if ($node->hasChildNodes()) {
-                foreach ($node->childNodes as $childNode) {
-                    $this->fetchNode($childNode, $attrName, $attrVal, $foundNode);
-                }
-            }
         }
     }
 
@@ -198,35 +180,17 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
     {
         for ($i = 0; $i < $attrs->length; $i++) {
             $attr = $attrs->item($i);
+            if (StringUtil::startsWith($attr->nodeName, ApiAttrs::ELEMENT)) {
+                if (strlen(trim($attr->nodeValue))) {
+                    $this->hasElementApiAttr = true;
+                }
+            }
             if (!Util::startsWith($attr->nodeName, ApiAttrs::ELEMENT) &&
-                $attr->nodeName !== ApiAttrs::REMOVE &&
                 $attr->nodeName !== ApiAttrs::RESOURCE &&
                 NodeUtil::isNotApiAttr($attr->nodeName) &&
                 CompilerUtil::isLiteral($attr->nodeValue)
             ) {
                 $attr->nodeValue = CompileLiteral::getParsedData($context, trim($attr->nodeValue));
-            }
-        }
-    }
-
-    /**
-     * @param $parent
-     * @param $node
-     */
-    private function remove(&$parent, &$node) {
-        if ($node instanceof \DOMElement) {
-            if ($node->hasAttribute(ApiAttrs::REMOVE)) {
-                $parent->removeChild($node);
-            }
-            else if ($node->hasChildNodes()) {
-                foreach ($node->childNodes as $child) {
-                    if ($child instanceof \DOMElement) {
-                        $this->remove($node, $child);
-                    }
-                    else if ($child->nodeName === '#comment') {
-                        $node->removeChild($child);
-                    }
-                }
             }
         }
     }

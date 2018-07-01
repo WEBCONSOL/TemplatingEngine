@@ -46,7 +46,7 @@ class Context extends \Handlebars\Context
             return $varName;
         }
         if (is_bool($varName) || $varName === 'true' || $varName === 'false') {
-            return $varName;
+            return $varName === 'false' || !$varName ? false : true;
         }
         $first = $varName[0];
         $last = $varName[strlen($varName)-1];

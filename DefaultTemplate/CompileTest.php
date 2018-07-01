@@ -21,6 +21,7 @@ class CompileTest implements CompileInterface
     public function __invoke(\DOMElement &$node, \DOMElement &$child, Context &$context, Tmpl &$tmpl, InterfaceEzpzTmpl &$engine): bool
     {
         $matches = CompilerUtil::parseLiteral($child->getAttribute(ApiAttrs::TEST));
+        $eval = false;
 
         if (sizeof($matches)) {
 
@@ -80,32 +81,26 @@ class CompileTest implements CompileInterface
                         }
                     }
                 }
-
-                $child->removeAttribute(ApiAttrs::TEST);
                 $eval = eval('return (' . $statement . ');');
+            }
 
-                if (!$eval) {
-                    $child->setAttribute(ApiAttrs::REMOVE, 'true');
-                    $child->nodeValue = '';
-                }
-                else {
-                    $newNode1 = new \DOMText();
-                    $newNode1->data = '';
-                    $node->insertBefore($newNode1, $child);
-                    $newNode2 = new \DOMText();
-                    $newNode2->data = '';
-                    $node->insertBefore($newNode2, $child->nextSibling);
-                    return true;
-                }
-            }
-            else
-            {
-                //$node->removeChild($child);
-                $child->setAttribute(ApiAttrs::REMOVE, 'true');
+            $child->removeAttribute(ApiAttrs::TEST);
+            if (!$eval) {
                 $child->nodeValue = '';
+                if ($child->hasAttributes()) {
+                    foreach ($child->attributes as $attribute) {
+                        $child->removeAttribute($attribute->nodeName);
+                    }
+                }
             }
+            $newNode1 = new \DOMText();
+            $newNode1->data = '{{#if ' . ($eval ? 'true' : 'false') . '}}';
+            $node->insertBefore($newNode1, $child);
+            $newNode2 = new \DOMText();
+            $newNode2->data = '{{/if}}';
+            $node->insertBefore($newNode2, $child->nextSibling);
         }
 
-        return false;
+        return $eval ? true : false;
     }
 }

@@ -9,8 +9,9 @@ final class CompilerUtil
 {
     private function __construct(){}
 
+    // TODO: use in test api - optimize this.
     public static function conditionalExpressionTokenizer(string $str): array {
-        $str =  preg_replace('/[\s+]/', '', $str);
+        $str =  preg_replace(RegexConstants::WHITESPACE, '', $str);
         $list = preg_split('/([\||&|=|!|\(|\)])/', $str);
         foreach ($list as $i=>$v) {
             if (!$v) {
@@ -56,18 +57,15 @@ final class CompilerUtil
         );
     }
 
-    public static function removeOpenCloseEzpzTag(string $str): string {
-        return str_replace(array(ApiAttrs::TAG_EZPZ_OPEN, ApiAttrs::TAG_EZPZ_CLOSE), '', $str);
-    }
-
     public static function isLiteral(string $str): bool {
+
+        $str = trim($str);
         if (substr($str, 0, 2)===ApiAttrs::TAG_EZPZ_OPEN && $str[strlen($str)-1]===ApiAttrs::TAG_EZPZ_CLOSE) {
             return true;
         }
         else {
-            $pattern = '/\${(.[^}]*)}/';
-            $matches = array();
-            preg_match_all($pattern, $str, $matches);
+            $pattern = RegexConstants::LITERAL;
+            $matches = PregUtil::getMatches($pattern, $str);
             if (!empty($matches)) {
                 $splits = preg_split($pattern, $str);
                 if (sizeof($splits) > 1) {
@@ -88,17 +86,7 @@ final class CompilerUtil
         return false;
     }
 
-    public static function parseLiteral(string $str): array {
-        return PregUtil::getMatches('/\${(.[^}]*)}/', $str);
-    }
-
-    public static function parseLiteralWithContext(string $str): array {
-        $matches = self::parseLiteral($str);
-        $list = array();
-        if (sizeof($matches)) {
-            preg_match('/([^\}|@]*)@([^\}|=]*)context=\'(.[^\}|\)]*)\'/', $matches[1][0], $list);
-            $list = array_filter($list, function($v){return !empty(trim($v));});
-        }
-        return $list;
+    public static function parseLiteral(string $data): array {
+        return PregUtil::getMatches(RegexConstants::LITERAL, $data);
     }
 }

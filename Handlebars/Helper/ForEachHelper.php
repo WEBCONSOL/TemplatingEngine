@@ -38,11 +38,13 @@ class ForEachHelper implements Helper
                         'index' => $index,
                         'first' => ($index === 0),
                         'last' => ($index === $lastIndex)
-                    )
+                    ),
+                    '@item' => $var
                 );
                 if (!$isList) {
                     $specialVariables['@key'] = $key;
                 }
+                
                 $context->pushSpecialVariables($specialVariables);
                 $context->push($var);
                 $template->setStopToken('else');

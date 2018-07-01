@@ -22,39 +22,36 @@ class CompileTest implements CompileInterface
     {
         $matches = CompilerUtil::parseLiteral($child->getAttribute(ApiAttrs::TEST));
 
-        if (sizeof($matches) && is_array($matches[1]) && sizeof($matches[1]) && $matches[1][0])
-        {
+        if (sizeof($matches)) {
+
             $token = new Context(CompilerUtil::conditionalExpressionTokenizer($matches[1][0]));
             $statement = $token->has('statement') ? $token->get('statement') : null;
 
-            if ($token->has('vars') && !empty($statement))
-            {
+            if ($token->has('vars') && !empty($statement)) {
+
                 $vars = $token->get('vars');
 
-                if (sizeof($vars) === 1)
-                {
+                if (sizeof($vars) === 1) {
+
                     $var = $vars[0];
 
-                    if ($context->has($var))
-                    {
+                    if ($context->has($var)) {
+
                         ${$var} = $context->get($var);
                     }
-                    else
-                    {
+                    else {
+
                         $parts = explode('.', $var);
 
-                        if (sizeof($parts) > 1)
-                        {
+                        if (sizeof($parts) > 1) {
+
                             $val = CompilerUtil::getVarValue($context, $parts);
                             $newVarName = preg_replace('/[^A-Za-z0-9]/', '_', $var);
                             $statement = str_replace($var, $newVarName, $statement);
-
-                            if ($val)
-                            {
+                            if ($val) {
                                 ${$newVarName} = true;
                             }
-                            else
-                            {
+                            else {
                                 ${$newVarName} = false;
                             }
                         }
@@ -62,24 +59,20 @@ class CompileTest implements CompileInterface
                 }
                 else
                 {
-                    foreach ($vars as $var)
-                    {
-                        if ($context->has($var))
-                        {
+                    foreach ($vars as $var) {
+
+                        if ($context->has($var)) {
                             ${$var} = $context->get($var);
                         }
-                        else
-                        {
+                        else {
                             $parts = explode('.', $var);
                             ${$var} = CompilerUtil::getVarValue($context, $parts);
-                            if (!empty(${$var}))
-                            {
+                            if (!empty(${$var})) {
                                 $newVarName = str_replace('.', '_', $var);
                                 $statement = str_replace($var, $newVarName, $statement);
                                 ${$newVarName} = ${$var};
                             }
-                            else if (sizeof($parts) > 1)
-                            {
+                            else if (sizeof($parts) > 1) {
                                 $newVarName = str_replace('.', '_', $var);
                                 $statement = str_replace($var, $newVarName, $statement);
                                 ${$newVarName} = false;
@@ -91,13 +84,11 @@ class CompileTest implements CompileInterface
                 $child->removeAttribute(ApiAttrs::TEST);
                 $eval = eval('return (' . $statement . ');');
 
-                if (!$eval)
-                {
+                if (!$eval) {
                     $child->setAttribute(ApiAttrs::REMOVE, 'true');
                     $child->nodeValue = '';
                 }
-                else
-                {
+                else {
                     $newNode1 = new \DOMText();
                     $newNode1->data = '';
                     $node->insertBefore($newNode1, $child);

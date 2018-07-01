@@ -59,10 +59,6 @@ class CompileResource implements CompileInterface
             $buffer = $templateEngine->compile($newContext, $newTmpl);
             $templateEngine->getEngine()->invokePluginsWithResourcePath($resource, $buffer, $newContext, $newTmpl);
 
-            if (strpos($resource, 'recaptcha') !== false) {
-                //print_r($buffer);echo "\n\n\n";
-            }
-
             $newNode = new \DOMText();
             $newNode->data = $buffer;
 

@@ -14,4 +14,6 @@ final class StringUtil
         $noTag = strip_tags($buffer);
         return $noTag !== $buffer;
     }
+
+    public static function contains(string &$haystack, $needle): bool {return strpos($haystack, $needle) !== false;}
 }

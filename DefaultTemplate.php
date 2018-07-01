@@ -13,7 +13,7 @@ use GX2CMS\TemplateEngine\Model\Context;
 use GX2CMS\TemplateEngine\Model\Tmpl;
 use GX2CMS\TemplateEngine\DefaultTemplate\ApiAttrs;
 use GX2CMS\TemplateEngine\DefaultTemplate\CompileInterface;
-use GX2CMS\TemplateEngine\DefaultTemplate\CompileLiteral;
+use GX2CMS\TemplateEngine\Util\CompileLiteral;
 use GX2CMS\TemplateEngine\Util\CompilerUtil;
 use GX2CMS\TemplateEngine\Util\Html5Util;
 use GX2CMS\TemplateEngine\Util\NodeUtil;
@@ -59,17 +59,9 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
                 }
             }
 
-            if ($this->hasElementApiAttr) {
-                foreach ($dom->childNodes as $node) {
-                    if ($node instanceof \DOMElement) {
-                        $this->process($html5, $node, $context, $tmpl, $this, ApiAttrs::API_LATELOADER_SERVICES);
-                    }
-                }
-            }
-
             foreach ($dom->childNodes as $node) {
                 if ($node instanceof \DOMElement) {
-                    $this->remove($dom, $node);
+                    $this->compileLateLoader($html5, $node, $context, $tmpl, $this);
                 }
             }
 
@@ -80,13 +72,11 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
                 $buffer = Html5Util::formatOutput($html5, $dom);
             }
 
-            $this->compileHtmlElements($context, $buffer);
+            $buffer = CompileLiteral::getParsedData($context, $buffer);
         }
         else {
             $buffer = CompileLiteral::getParsedData($context, $tmplContent);
         }
-
-        $this->processRemaining($buffer, $context, $tmpl, $this);
 
         if ($tmpl->hasPartialsPath()) {
             $this->engine()->setPartialsLoader(new FilesystemLoader(
@@ -97,11 +87,11 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
             ));
         }
 
-        $buffer = $this->engine()->render(preg_replace('/}}}}+/', ApiAttrs::TAG_HB_CLOSE, $buffer), $context->getAsArray());
+        $buffer = $this->engine()->render($buffer, new \GX2CMS\TemplateEngine\Handlebars\Context($context->getAsArray()));
 
         unset($html5, $dom, $tmplContent);
 
-        return $buffer;
+        return Html5Util::normalize($buffer);
     }
 
     /**
@@ -149,55 +139,7 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
             }
         }
         else if ($node instanceof \DOMText) {
-
-            CompileLiteral::process($node, $context, $tmpl, $engine);
-        }
-    }
-
-    private function processRemaining(string &$buffer, Context &$context, Tmpl &$tmpl, InterfaceEzpzTmpl $engine) {
-
-        $keys = array_keys(ApiAttrs::API_SERVICES);
-        $found = array();
-        foreach ($keys as $key) {
-            $pattern = '/'.$key.'="(.[^"]*)"/';
-            $matches = array();
-            preg_match_all($pattern, $buffer, $matches);
-            if (PregUtil::matchesFound($matches)) {
-                if (!isset($found[$key])) {
-                    $found[$key] = array(array(), array());
-                }
-                foreach ($matches[1] as $i=>$match) {
-                    if (!in_array($match, $found[$key][1])) {
-                        $found[$key][0][] = $matches[0][$i];
-                        $found[$key][1][] = $match;
-                    }
-                }
-            }
-        }
-
-        if (sizeof($found)) {
-
-            $html5 = new HTML5();
-            $dom = $html5->loadHTML($buffer);
-            foreach (ApiAttrs::API_SERVICES as $attr=>$service) {
-                if (isset($found[$attr])) {
-                    $service = $this->tmplPackagePfx . $service;
-                    $service = new $service;
-                    if ($service instanceof CompileInterface) {
-                        foreach ($found[$attr][1] as $attrVal) {
-                            $foundNode = null;
-                            $this->fetchNode($dom, $attr, $attrVal, $foundNode);
-                            if ($foundNode instanceof \DOMElement) {
-                                $service($foundNode->parentNode, $foundNode, $context, $tmpl, $engine);
-                            }
-                        }
-                    }
-                }
-            }
-
-            $buffer = Util::removeHtmlComments(Html5Util::formatOutput($html5, $dom, false));
-            $this->invokePluginsWithoutResourcePath($buffer, $context, $tmpl);
-            unset($found, $html5, $dom);
+            //CompileLiteral::process($node, $context);
         }
     }
 
@@ -223,32 +165,32 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
      * @param Context $context
      * @param string  $buffer
      */
-    private function compileHtmlElements(Context &$context, string &$buffer)
+    private function compileLateLoader(HTML5 &$html5, &$node, Context $context, Tmpl $tmpl, InterfaceEzpzTmpl $engine)
     {
-        $matches = CompilerUtil::parseLiteral($buffer);
+        if ($node instanceof \DOMElement) {
 
-        if (sizeof($matches) > 0 && isset($matches[0]) && isset($matches[1]) && !empty($matches[0]) && !empty($matches[1])) {
+            if ($node->hasChildNodes()) {
 
-            foreach ($matches[1] as $k=>$v) {
+                foreach ($node->childNodes as $child) {
 
-                $v = trim(preg_replace('/@(.[^\']*)context=\'(.[^\']*)\'/', '', $v));
-                if ($context->has($v)) {
-                    $matches[1][$k] = $context->get($v);
-                }
-                else {
-                    $v = CompilerUtil::getVarValue($context, explode('.', $v));
-                    if ($v) {
-                        $matches[1][$k] = $v;
-                    }
-                    else if (strpos($matches[1][$k], '@') === false) {
-                        $matches[1][$k] = CompilerUtil::openCloseHBTag($matches[0][$k]);
-                    }
-                    else {
-                        $matches[1][$k] = $matches[0][$k];
+                    if ($child instanceof \DOMElement) {
+
+                        foreach (ApiAttrs::API_LATELOADER_SERVICES as $api => $service) {
+
+                            if ($child->hasAttribute($api) || NodeUtil::hasApiAttr($child->attributes, $api)) {
+
+                                $service = $this->tmplPackagePfx . $service;
+                                $service = new $service;
+                                if ($service instanceof CompileInterface) {
+                                    $service($node, $child, $context, $tmpl, $engine);
+                                }
+                            }
+                        }
+
+                        $this->compileLateLoader($html5, $child, $context, $tmpl, $engine);
                     }
                 }
             }
-            $buffer = str_replace($matches[0], $matches[1], $buffer);
         }
     }
 
@@ -256,11 +198,11 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
     {
         for ($i = 0; $i < $attrs->length; $i++) {
             $attr = $attrs->item($i);
-            if (Util::startsWith($attr->nodeName, ApiAttrs::ELEMENT)) {
-                $this->hasElementApiAttr = true;
-            }
-            else if ($attr->nodeName !== ApiAttrs::REMOVE && $attr->nodeName !== ApiAttrs::RESOURCE &&
-                NodeUtil::isNotApiAttr($attr->nodeName) && CompilerUtil::isLiteral($attr->nodeValue)
+            if (!Util::startsWith($attr->nodeName, ApiAttrs::ELEMENT) &&
+                $attr->nodeName !== ApiAttrs::REMOVE &&
+                $attr->nodeName !== ApiAttrs::RESOURCE &&
+                NodeUtil::isNotApiAttr($attr->nodeName) &&
+                CompilerUtil::isLiteral($attr->nodeValue)
             ) {
                 $attr->nodeValue = CompileLiteral::getParsedData($context, trim($attr->nodeValue));
             }
@@ -408,17 +350,12 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
     /**
      * @param string $resourceRoot
      */
-    public function setResourceRoot(string $resourceRoot)
-    {
-        $this->resourceRoot = $resourceRoot;
-    }
+    public function setResourceRoot(string $resourceRoot){$this->resourceRoot = $resourceRoot;}
 
     /**
      * @return string
      */
-    public function getResourceRoot(): string {
-        return $this->resourceRoot ? (rtrim($this->resourceRoot, '/') . '/') : $this->resourceRoot;
-    }
+    public function getResourceRoot(): string {return $this->resourceRoot ? (rtrim($this->resourceRoot, '/') . '/') : $this->resourceRoot;}
 
     /**
      * @return bool

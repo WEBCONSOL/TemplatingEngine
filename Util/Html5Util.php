@@ -19,6 +19,7 @@ final class Html5Util
         '<ezpz data-ezpz-remove="true">',
         '</ezpz>'
     );
+
     public static $replaces = array(
         '&&',
         '<',
@@ -40,14 +41,31 @@ final class Html5Util
             $parts = explode('<html', $html5->saveHTML($dom));
             $parts = explode('</html>', $parts[sizeof($parts) - 1]);
             $buffer = substr($parts[0], 1);
-            return self::normalize($buffer);
+            $buffer = self::normalize($buffer);
+            self::removeEzpzTag($buffer);
         }
         else {
-            return self::normalize($html5->saveHTML($dom));
+            $buffer = self::normalize($html5->saveHTML($dom));
+            self::removeEzpzTag($buffer);
         }
+        return $buffer;
     }
 
-    public static function normalize($buffer): string {
+    private static function normalize($buffer): string {
         return str_replace(self::$patterns, self::$replaces, $buffer);
+    }
+
+    private static function removeEzpzTag(string &$buffer) {
+        $pattern = '/<ezpz(.[^>]*)>/';
+        $matches = PregUtil::getMatches($pattern, $buffer);
+        if (sizeof($matches)) {
+            $buffer = str_replace($matches[0], '', $buffer);
+        }
+
+        $pattern = '/<sly(.[^>]*)>/';
+        $matches = PregUtil::getMatches($pattern, $buffer);
+        if (sizeof($matches)) {
+            $buffer = str_replace($matches[0], '', $buffer);
+        }
     }
 }

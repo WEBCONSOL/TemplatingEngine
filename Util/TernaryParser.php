@@ -8,12 +8,12 @@ class TernaryParser
 {
     public static function parse(\GX2CMS\TemplateEngine\Model\Context $context, string $subject)
     {
-        $originalSubject = $subject;
+        $originalSubject = str_replace(array('${ ',' ? ', ' : ',' ?', ' :','? ', ': ',' }'), array('${','?', ':','?', ':','?', ':','}'), $subject);
         $list = self::extractValues($subject);
         $matches = $list->getAsArray();
-        if ($list->count() >= 4) {
+        if ($list->count() >= 4 && sizeof($list->get(0)) && sizeof($list->get(1)) && sizeof($list->get(1)) && sizeof($list->get(3))) {
             for($i=1; $i<$list->count(); $i++) {
-                $matches[$i][0] = str_replace('itemList.', '@', $matches[$i][0]);
+                $matches[$i][0] = str_replace(array('itemList.','item.'), array('@','this.'), $matches[$i][0]);
             }
 
             $tokens = array('===',      '!==',      '!=',       '==',       '>=',   '<=',   '>',    '<');
@@ -32,6 +32,7 @@ class TernaryParser
             else {
                 $newSubject = '{{#if '.end($matches[1]).'}}'.end($matches[2]).'{{else}}'.end($matches[3]).'{{/if}}';
             }
+
             $subject = str_replace($matches[0][0], $newSubject, $originalSubject);
         }
         return $subject;
@@ -40,17 +41,16 @@ class TernaryParser
     public static function isTernary(string $str): bool {
 
         $list = self::extractValues($str);
-        $tmp = preg_replace('/[\s\t\r\n]/', '', $str);
+        $tmp = preg_replace('/[\t\r\n]/', '', $str);
         $first2Chars = strlen($tmp) > 2 ? substr($tmp,0,2) : '';
         $lastChar = strlen($tmp) > 0 ? $tmp[strlen($tmp)-1] : '';
-        if ($list->count() >= 4) {
+        if ($list->count() >= 4 && sizeof($list->get(0)) && sizeof($list->get(1)) && sizeof($list->get(1)) && sizeof($list->get(3))) {
             if (strpos($str, '?') !== false && strpos($str, ':') !== false &&
                 (($first2Chars==='${' && $lastChar==='}') || (strpos($tmp, '${') !== false && strpos($tmp, '}') !== false))) {
                 return true;
             }
         }
-        return strpos($str, '?') !== false && strpos($str, ':') !== false &&
-            (($first2Chars==='${' && $lastChar==='}') || (strpos($tmp, '${') !== false && strpos($tmp, '}') !== false));
+        return false;
     }
 
     private static function tokenize(string $subject): \Utilities\ListUtil

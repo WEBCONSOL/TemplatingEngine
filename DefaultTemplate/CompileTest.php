@@ -109,7 +109,9 @@ class CompileTest implements CompileInterface
             }
             else
             {
-                $node->removeChild($child);
+                //$node->removeChild($child);
+                $child->setAttribute(ApiAttrs::REMOVE, 'true');
+                $child->nodeValue = '';
             }
         }
 

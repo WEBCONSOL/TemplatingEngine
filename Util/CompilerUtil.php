@@ -9,19 +9,6 @@ final class CompilerUtil
 {
     private function __construct(){}
 
-    public static function literal(string $str): string {
-        $parts = explode('.', $str);
-        if (sizeof($parts) > 1) {
-            $list = array();
-            $list[] = $parts[0];
-            for ($i = 1; $i < sizeof($parts); $i++) {
-                $list[] = '["'.$parts[$i].'"]';
-            }
-            return implode('', $list);
-        }
-        return '$'.$str;
-    }
-
     public static function conditionalExpressionTokenizer(string $str): array {
         $str =  preg_replace('/[\s+]/', '', $str);
         $list = preg_split('/([\||&|=|!|\(|\)])/', $str);
@@ -56,8 +43,6 @@ final class CompilerUtil
             }
             if ($n1 > $n2) {
                 return null;
-            }
-            else {
             }
         }
         return $val;
@@ -104,12 +89,7 @@ final class CompilerUtil
     }
 
     public static function parseLiteral(string $str): array {
-        $matches = array();
-        preg_match_all('/\${(.[^}]*)}/', trim($str), $matches);
-        if (self::matchesFound($matches)) {
-            return $matches;
-        }
-        return array();
+        return PregUtil::getMatches('/\${(.[^}]*)}/', $str);
     }
 
     public static function parseLiteralWithContext(string $str): array {
@@ -120,12 +100,5 @@ final class CompilerUtil
             $list = array_filter($list, function($v){return !empty(trim($v));});
         }
         return $list;
-    }
-
-    public static function matchesFound(array &$matches): bool {
-        if (sizeof($matches) > 1 && is_array($matches[1]) && isset($matches[1][0]) && strlen($matches[1][0])) {
-            return true;
-        }
-        return false;
     }
 }

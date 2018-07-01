@@ -2,11 +2,12 @@
 
 namespace GX2CMS\TemplateEngine\DefaultTemplate;
 
-use GX2CMS\Lib\Util;
 use GX2CMS\TemplateEngine\InterfaceEzpzTmpl;
 use GX2CMS\TemplateEngine\Model\Context;
 use GX2CMS\TemplateEngine\Model\Tmpl;
 use GX2CMS\TemplateEngine\Util\CompilerUtil;
+use GX2CMS\TemplateEngine\Util\PregUtil;
+use GX2CMS\TemplateEngine\Util\StringUtil;
 use GX2CMS\TemplateEngine\Util\TernaryParser;
 
 class CompileLiteral
@@ -27,13 +28,30 @@ class CompileLiteral
         {
             $data = preg_replace('/\${item}/', '{{this}}', $data);
         }
-        else if (strlen($data))
+        else if (CompilerUtil::isLiteral($data) && strlen($data) && !StringUtil::hasTag($data))
         {
-            $callback = self::getCallback($data);
-            if ($callback) {
-                $data = $callback($context, $data);
-                $data = str_replace('{item}', '{this}', $data);
+            $newData = '';
+            $matches = CompilerUtil::parseLiteral($data);
+
+            if (sizeof($matches)) {
+
+                foreach ($matches[0] as $i=>$v) {
+                    $callback = self::getCallback($v);
+                    if ($callback) {
+                        $matches[1][$i] = str_replace('{item}', '{this}', $callback($context, $v));
+                    }
+                }
+
+                $newData = str_replace($matches[0], $matches[1], $data);
             }
+            else {
+                $callback = self::getCallback($data);
+                if ($callback) {
+                    $newData = str_replace('{item}', '{this}', $callback($context, $data));
+                }
+            }
+
+            $data = $newData;
         }
 
         return trim($data);
@@ -107,22 +125,19 @@ class CompileLiteral
      */
     private static function handleContext(Context &$context, string $data): string {
 
-        $l = array();
-        preg_match('/\${(.[^}]*)@([^}]*)}/', $data, $l);
+        $l = PregUtil::getMatches('/\${(.[^}]*)@([^}]*)}/', $data);
         if (sizeof($l) === 3) {
-            $cnt = array();
-            preg_match('/context=\'(.*)\'/', $l[2], $cnt);
+            $cnt = PregUtil::getMatches("/context='(.[^']*)'/", $l[2][0]);
             if (!empty($cnt)) {
-                return ApiAttrs::TAG_HB_OPEN . '{' . trim($l[1]) . '}' . ApiAttrs::TAG_HB_CLOSE;
+                return ApiAttrs::TAG_HB_OPEN . '{' . trim($l[1][0]) . '}' . ApiAttrs::TAG_HB_CLOSE;
             }
             else {
-                $cnt = array();
-                preg_match('/i18n(.*)locale=(.*)/', $l[2], $cnt);
-                if (!empty($cnt) && sizeof($cnt) === 3) {
+                $cnt = PregUtil::getMatches("/i18n(.[^']*)locale='(.[^']*)'/", $l[2][0]);
+                if (sizeof($cnt) === 3) {
                     $keys = array(
                         'i18n',
-                        preg_replace('/[\s\n\r\'"]/', '', $cnt[2]),
-                        preg_replace('/[\s\n\r\'"]/', '', $l[1])
+                        preg_replace('/[\s\n\r\'"]/', '', $cnt[2][0]),
+                        preg_replace('/[\s\n\r\'"]/', '', $l[1][0])
                     );
                     $val = CompilerUtil::getVarValue($context, $keys);
                     if (!empty($val)) {

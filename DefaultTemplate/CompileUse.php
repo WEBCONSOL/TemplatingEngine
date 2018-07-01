@@ -30,7 +30,7 @@ class CompileUse implements CompileInterface
                 $parts = explode('.', $attribute->name);
                 if (sizeof($parts) > 1) {
                     $var = $parts[1];
-                    $attrVal = $attribute->nodeValue;
+                    $attrVal = preg_replace('/[\'\"\s\r\n\t]/', '', trim($attribute->nodeValue));
                     $child->removeAttribute($attribute->name);
                 }
             }

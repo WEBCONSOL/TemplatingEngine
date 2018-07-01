@@ -43,7 +43,7 @@ class CompileResource implements CompileInterface
         $hasHtml = file_exists($html);
         $hasData = file_exists($data);
 
-        if ($hasHtml && $hasData)
+        if ($hasHtml)
         {
             $newContext = new Context($data);
             $newTmpl = new Tmpl($html);
@@ -55,19 +55,19 @@ class CompileResource implements CompileInterface
             if ($engine->hasPlugins()) {
                 $templateEngine->getEngine()->setPlugins($engine->getPlugins());
             }
+
             $buffer = $templateEngine->compile($newContext, $newTmpl);
             $templateEngine->getEngine()->invokePluginsWithResourcePath($resource, $buffer, $newContext, $newTmpl);
+
+            if (strpos($resource, 'recaptcha') !== false) {
+                //print_r($buffer);echo "\n\n\n";
+            }
 
             $newNode = new \DOMText();
             $newNode->data = $buffer;
 
-            if ($child->nodeName === 'ezpz' || $child->nodeName === 'sly') {
-                $node->replaceChild($newNode, $child);
-            }
-            else {
-                $child->removeAttribute(ApiAttrs::RESOURCE);
-                $child->insertBefore($newNode, $child->firstChild);
-            }
+            $child->removeAttribute(ApiAttrs::RESOURCE);
+            $node->insertBefore($newNode, $child->firstChild);
         }
         else if (trim($resource, '/') === ApiAttrs::PARSYS)
         {
@@ -101,14 +101,8 @@ class CompileResource implements CompileInterface
 
                     $newNode = new \DOMText();
                     $newNode->data = implode('', $contentBuffer);
-
-                    if ($child->nodeName === 'ezpz' || $child->nodeName === 'sly') {
-                        $node->replaceChild($newNode, $child);
-                    }
-                    else {
-                        $child->removeAttribute(ApiAttrs::RESOURCE);
-                        $child->insertBefore($newNode, $child->firstChild);
-                    }
+                    $child->removeAttribute(ApiAttrs::RESOURCE);
+                    $child->insertBefore($newNode, $child->firstChild);
                 }
                 else {
                     Response::renderPlaintext('Your parsys ('.$resource.') is empty');

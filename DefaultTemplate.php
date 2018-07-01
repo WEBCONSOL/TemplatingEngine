@@ -4,6 +4,8 @@ namespace GX2CMS\TemplateEngine;
 
 use GX2CMS\Lib\Response;
 use GX2CMS\Lib\Util;
+use GX2CMS\TemplateEngine\Util\PregUtil;
+use GX2CMS\TemplateEngine\Util\StringUtil;
 use Handlebars\Handlebars;
 use Handlebars\Loader\FilesystemLoader;
 use Masterminds\HTML5;
@@ -46,7 +48,7 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
         $this->sly2ezpz($tmplContent);
         $this->invokePluginsToProcessContext($context, $tmpl);
 
-        if ($this->hasTag($tmplContent)) {
+        if (StringUtil::hasTag($tmplContent)) {
 
             $html5 = new HTML5();
             $dom = $html5->loadHTML($tmplContent);
@@ -153,13 +155,14 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
     }
 
     private function processRemaining(string &$buffer, Context &$context, Tmpl &$tmpl, InterfaceEzpzTmpl $engine) {
+
         $keys = array_keys(ApiAttrs::API_SERVICES);
         $found = array();
         foreach ($keys as $key) {
             $pattern = '/'.$key.'="(.[^"]*)"/';
             $matches = array();
             preg_match_all($pattern, $buffer, $matches);
-            if (CompilerUtil::matchesFound($matches)) {
+            if (PregUtil::matchesFound($matches)) {
                 if (!isset($found[$key])) {
                     $found[$key] = array(array(), array());
                 }
@@ -308,20 +311,9 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
 
     /**
      * @param string $buffer
-     *
-     * @return bool
-     */
-    private function hasTag(string &$buffer): bool
-    {
-        $noTag = strip_tags($buffer);
-        return $noTag !== $buffer;
-    }
-
-    /**
-     * @param string $buffer
      */
     private function sly2ezpz(string &$buffer) {
-        $buffer = str_replace(array('<sly','</sly','-sly-'), array('<ezpz','</ezpz','-ezpz-'), $buffer);
+        $buffer = str_replace(array('<sly','</sly>','-sly-'), array('<ezpz','</ezpz>','-ezpz-'), $buffer);
     }
 
     /**
@@ -330,8 +322,10 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
      * @return bool
      */
     private function ignore(\DOMElement &$child) {
-        if ($child->nodeName === 'script' && $child->getAttribute('type') === 'text/x-handlebars-template') {
-            return true;
+        if ($child->nodeName === 'script') {
+            if ($child->getAttribute('type') === 'text/x-handlebars-template') {
+                return true;
+            }
         }
         return false;
     }

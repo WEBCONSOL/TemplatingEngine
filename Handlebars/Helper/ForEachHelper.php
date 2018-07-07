@@ -2,6 +2,7 @@
 
 namespace GX2CMS\TemplateEngine\Handlebars\Helper;
 
+use GX2CMS\TemplateEngine\Util\StringUtil;
 use Handlebars\Context;
 use Handlebars\Helper;
 use Handlebars\Template;
@@ -31,14 +32,10 @@ class ForEachHelper implements Helper
                     '@index' => $index,
                     '@first' => ($index === 0),
                     '@last' => ($index === $lastIndex),
-                    '@itemListIndex' => $index,
-                    '@itemListFirst' => ($index === 0),
-                    '@itemListLast' => ($index === $lastIndex),
-                    '@itemList' => array(
-                        'index' => $index,
-                        'first' => ($index === 0),
-                        'last' => ($index === $lastIndex)
-                    ),
+                    '@itemlistsize' => $size,
+                    '@itemlistindex' => $index,
+                    '@itemListfirst' => ($index === 0),
+                    '@itemListlast' => ($index === $lastIndex),
                     '@item' => $var
                 );
                 if (!$isList) {
@@ -57,6 +54,8 @@ class ForEachHelper implements Helper
 
             $template->setStopToken(false);
         }
+
+        StringUtil::formatHandlebarBuffer($buffer);
 
         return $buffer;
     }

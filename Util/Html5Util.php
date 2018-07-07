@@ -41,22 +41,20 @@ final class Html5Util
             $parts = explode('<html', $html5->saveHTML($dom));
             $parts = explode('</html>', $parts[sizeof($parts) - 1]);
             $buffer = substr($parts[0], 1);
-            $buffer = self::normalize($buffer);
+            self::normalize($buffer);
             self::cleanup($buffer);
         }
         else {
-            $buffer = self::normalize($html5->saveHTML($dom));
+            $buffer = $html5->saveHTML($dom);
+            self::normalize($buffer);
             self::cleanup($buffer);
         }
 
         return $buffer;
     }
 
-    public static function normalize($buffer): string {
-        if (StringUtil::startsWith($buffer, "'<!DOCTYPE html>")) {
-            $buffer = substr($buffer, 1);
-        }
-        return str_replace(self::$patterns, self::$replaces, $buffer);
+    private static function normalize(string &$buffer) {
+        $buffer = str_replace(self::$patterns, self::$replaces, $buffer);
     }
 
     private static function cleanup(string &$buffer) {

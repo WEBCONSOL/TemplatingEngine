@@ -63,7 +63,8 @@ class CompileResource implements CompileInterface
             $newNode->data = $buffer;
 
             $child->removeAttribute(ApiAttrs::RESOURCE);
-            $node->insertBefore($newNode, $child->firstChild);
+            //$node->insertBefore($newNode, $child->firstChild);
+            $child->appendChild($newNode);
         }
         else if (trim($resource, '/') === ApiAttrs::PARSYS)
         {

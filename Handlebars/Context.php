@@ -14,13 +14,20 @@ class Context extends \Handlebars\Context
 
     public function get($variableName, $strict = false)
     {
+        if ($variableName instanceof \Handlebars\StringWrapper) {
+            $ret = (string)$variableName;
+            if ($ret == "''") {
+                $ret = "";
+            }
+            return $ret;
+        }
         $constant = $this->getConstant($variableName);
 
         if ($constant) {
             return $constant;
         }
         else if ($variableName === "''") {
-            return $variableName;
+            return "";
         }
         else {
             $htmlBlock = $this->htmlBlock($variableName);
@@ -29,11 +36,25 @@ class Context extends \Handlebars\Context
             }
             else {
                 $val = parent::get($variableName, $strict);
-                if ($variableName === 'item' && !$val) {
-                    $val = parent::get('@'.$variableName, $strict);
+                if (!$val) {
+                    if ($variableName === 'item') {
+                        $variableName = '@'.$variableName;
+                    }
+                    else if (StringUtil::startsWith($variableName, 'itemList.')) {
+                        $parts = explode('.', strtolower($variableName));
+                        $parts[0] = '@'.$parts[0];
+                        $variableName = implode('', $parts);
+                    }
+                    else if (StringUtil::startsWith($variableName, 'item.')) {
+                        $variableName = str_replace('item.', 'this.', $variableName);
+                    }
+                    $val = parent::get($variableName, $strict);
                     if ($val) {
                         return $val;
                     }
+                }
+                else {
+                    return $val;
                 }
             }
         }

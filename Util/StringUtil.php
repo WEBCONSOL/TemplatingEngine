@@ -16,4 +16,13 @@ final class StringUtil
     }
 
     public static function contains(string &$haystack, $needle): bool {return strpos($haystack, $needle) !== false;}
+
+    public static function formatHandlebarBuffer(string &$buffer) {
+        if ($buffer === "''") {
+            $buffer = "";
+        }
+        else if (strlen($buffer) > 2 && $buffer[0] == "'" && $buffer[strlen($buffer)-1] == "'") {
+            $buffer = substr($buffer, 1, -1);
+        }
+    }
 }

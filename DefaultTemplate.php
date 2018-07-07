@@ -92,7 +92,7 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
 
         unset($html5, $dom, $tmplContent);
 
-        return Html5Util::normalize($buffer);
+        return $buffer;
     }
 
     /**

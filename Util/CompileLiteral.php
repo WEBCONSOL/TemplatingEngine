@@ -24,7 +24,7 @@ class CompileLiteral
             foreach ($matches[0] as $i=>$match) {
                 $callback = self::getCallback($match);
                 if ($callback) {
-                    //echo $match ." -> ".$callback,"\n";
+                    //echo $match ." -> ".$callback," :: ",$matches[1][$i],"\n";
                     $matches[1][$i] = $callback($context, $matches[1][$i]);
                 }
             }
@@ -128,7 +128,8 @@ class CompileLiteral
     private static function handleI18N(Context &$context, string $data): string {
         $matches = PregUtil::getMatches(RegexConstants::I18N, $data);
         if (sizeof($matches) >= 4) {
-            $contextName = $matches[4][0];
+            $last = end($matches);
+            $contextName = $last[0];
             $varName = $matches[1][0];
             if ($context->has('i18n')) {
                 $i18n = $context->get('i18n');
@@ -162,7 +163,7 @@ class CompileLiteral
      *
      * @return string
      */
-    private static function handleConstant(string $data): string {
+    private static function handleConstant(Context &$context, string $data): string {
         return ApiAttrs::TAG_HB_OPEN . "'" . trim($data) . "'" . ApiAttrs::TAG_HB_CLOSE;
     }
 }

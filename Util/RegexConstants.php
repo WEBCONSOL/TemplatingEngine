@@ -8,7 +8,7 @@ final class RegexConstants
 
     const LITERAL = '/\${(.[^}]*)}/';
     const CONTEXT = '/(.*)@(.*)context=\'(.*)\'/';
-    const I18N = '/(.*)@(.*)i18n(.*)locale=\'(.*)\'/';
+    const I18N = '/\'(.*)\'(.*)@(.*)i18n(.*)locale=\'(.*)\'/';
     const TERNARY_VAR = '/\${(.[^}]*)\?(.[^}]*)\:(.[^}]*)}/';
     const TERNARY_VAL = '/(.[^\?]*)\?(.[^\:]*)\:(.*)/';
     const WHITESPACE = '/[\s+\r\n\t]/';

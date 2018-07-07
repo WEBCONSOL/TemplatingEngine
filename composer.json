@@ -1,0 +1,9 @@
+{
+    "name": "webconsol/template-engine",
+    "description": "Template Rendering Engine",
+    "autoload": {
+        "psr-4" : {
+            "GX2CMS\\TemplateEngine\\" : ""
+        }
+    }
+}

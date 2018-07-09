@@ -2,7 +2,7 @@
 
 namespace GX2CMS\TemplateEngine\Model;
 
-use GX2CMS\Lib\Util;
+use GX2CMS\TemplateEngine\Util\StringUtil;
 
 class Tmpl
 {
@@ -27,12 +27,12 @@ class Tmpl
 
         if ($hasDS && pathinfo($var, PATHINFO_EXTENSION) === 'html' && file_exists($var))
         {
-            $this->content = Util::removeHtmlComments(file_get_contents($var));
+            $this->content = StringUtil::removeHtmlComments(file_get_contents($var));
             $this->type = 'file';
         }
         else
         {
-            $this->content = Util::removeHtmlComments($var);
+            $this->content = StringUtil::removeHtmlComments($var);
         }
     }
 

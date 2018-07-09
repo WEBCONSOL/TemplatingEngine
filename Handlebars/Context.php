@@ -2,7 +2,7 @@
 
 namespace GX2CMS\TemplateEngine\Handlebars;
 
-use GX2CMS\Lib\Response;
+use GX2CMS\TemplateEngine\Util\Response;
 use GX2CMS\TemplateEngine\Util\StringUtil;
 
 class Context extends \Handlebars\Context

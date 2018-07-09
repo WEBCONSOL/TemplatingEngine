@@ -2,7 +2,7 @@
 
 namespace GX2CMS\TemplateEngine\Model;
 
-use GX2CMS\Lib\Util;
+use GX2CMS\TemplateEngine\Util\StringUtil;
 
 class Context implements \JsonSerializable, \Countable
 {
@@ -30,7 +30,7 @@ class Context implements \JsonSerializable, \Countable
                 $this->data = json_decode(file_get_contents($v), true);
                 $this->valueType = 'file';
             }
-            else if (Util::isValidJSON($v)) {
+            else if (StringUtil::isValidJSON($v)) {
                 $this->data = json_decode($v, true);
                 $this->valueType = 'JSONString';
             }

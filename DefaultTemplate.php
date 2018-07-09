@@ -2,8 +2,7 @@
 
 namespace GX2CMS\TemplateEngine;
 
-use GX2CMS\Lib\Response;
-use GX2CMS\Lib\Util;
+use GX2CMS\TemplateEngine\Util\Response;
 use GX2CMS\TemplateEngine\Util\StringUtil;
 use Handlebars\Handlebars;
 use Handlebars\Loader\FilesystemLoader;
@@ -185,7 +184,7 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
                     $this->hasElementApiAttr = true;
                 }
             }
-            if (!Util::startsWith($attr->nodeName, ApiAttrs::ELEMENT) &&
+            if (!StringUtil::startsWith($attr->nodeName, ApiAttrs::ELEMENT) &&
                 $attr->nodeName !== ApiAttrs::RESOURCE &&
                 NodeUtil::isNotApiAttr($attr->nodeName) &&
                 CompilerUtil::isLiteral($attr->nodeValue)

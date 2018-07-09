@@ -2,7 +2,6 @@
 
 namespace GX2CMS\TemplateEngine\Handlebars\Helper;
 
-use GX2CMS\Lib\Util;
 use GX2CMS\TemplateEngine\Util\StringUtil;
 use Handlebars\Context;
 use Handlebars\Helper;
@@ -15,7 +14,7 @@ class Base64_DecodeHelper implements Helper
         $parsedArgs = $template->parseArguments($args);
         $buffer = $context->get($parsedArgs[0]);
         if ($buffer) {
-            if (Util::isBase64Encoded($buffer)) {
+            if (StringUtil::isBase64Encoded($buffer)) {
                 $buffer = base64_decode($buffer);
             }
             else {

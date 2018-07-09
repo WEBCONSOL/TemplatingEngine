@@ -3,7 +3,7 @@
 namespace GX2CMS\TemplateEngine\DefaultTemplate;
 
 use GX2CMS\Lib\FileExtension;
-use GX2CMS\Lib\Response;
+use GX2CMS\TemplateEngine\Util\Response;
 use GX2CMS\TemplateEngine\Ezpz;
 use GX2CMS\TemplateEngine\InterfaceEzpzTmpl;
 use GX2CMS\TemplateEngine\Model\Context;

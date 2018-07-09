@@ -2,7 +2,6 @@
 
 namespace GX2CMS\TemplateEngine\Util;
 
-use GX2CMS\Lib\Response;
 use GX2CMS\TemplateEngine\DefaultTemplate\ApiAttrs;
 use GX2CMS\TemplateEngine\Model\Context;
 

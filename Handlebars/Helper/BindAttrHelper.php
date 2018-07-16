@@ -1,14 +1,29 @@
 <?php
+/**
+ * This file is part of Handlebars-php
+ *
+ * PHP version 5.3
+ *
+ * @category  Xamin
+ * @package   Handlebars
+ * @author    fzerorubigd <fzerorubigd@gmail.com>
+ * @author    Behrooz Shabani <everplays@gmail.com>
+ * @author    Dmitriy Simushev <simushevds@gmail.com>
+ * @author    Jeff Turcotte <jeff.turcotte@gmail.com>
+ * @copyright 2014 Authors
+ * @license   MIT <http://opensource.org/licenses/MIT>
+ * @version   GIT: $Id$
+ * @link      http://xamin.ir
+ */
 
 namespace GX2CMS\TemplateEngine\Handlebars\Helper;
 
-use GX2CMS\TemplateEngine\Util\StringUtil;
 use GX2CMS\TemplateEngine\Handlebars\Context;
 use GX2CMS\TemplateEngine\Handlebars\Helper;
 use GX2CMS\TemplateEngine\Handlebars\Template;
 
 /**
- * Handlebars halper interface
+ * The bindAttr Helper
  *
  * @category  Xamin
  * @package   Handlebars
@@ -21,7 +36,7 @@ use GX2CMS\TemplateEngine\Handlebars\Template;
  * @version   Release: @package_version@
  * @link      http://xamin.ir
  */
-class IfHelper implements Helper
+class BindAttrHelper implements Helper
 {
     /**
      * Execute the helper
@@ -35,23 +50,6 @@ class IfHelper implements Helper
      */
     public function execute(Template $template, Context $context, $args, $source)
     {
-        $parsedArgs = $template->parseArguments($args);
-        $tmp = $context->get($parsedArgs[0]);
-
-        if ($tmp) {
-            $template->setStopToken('else');
-            $buffer = $template->render($context);
-            $template->setStopToken(false);
-            $template->discard($context);
-        } else {
-            $template->setStopToken('else');
-            $template->discard($context);
-            $template->setStopToken(false);
-            $buffer = $template->render($context);
-        }
-
-        StringUtil::formatHandlebarBuffer($buffer);
-
-        return $buffer;
+        return $args;
     }
 }

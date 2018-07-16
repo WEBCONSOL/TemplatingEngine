@@ -4,9 +4,8 @@ namespace GX2CMS\TemplateEngine;
 
 use GX2CMS\TemplateEngine\Util\Response;
 use GX2CMS\TemplateEngine\Util\StringUtil;
-use Handlebars\Handlebars;
-use Handlebars\Loader\FilesystemLoader;
-use Masterminds\HTML5;
+use GX2CMS\TemplateEngine\Handlebars\Handlebars;
+use GX2CMS\TemplateEngine\Handlebars\Loader\FilesystemLoader;
 use GX2CMS\TemplateEngine\Model\Context;
 use GX2CMS\TemplateEngine\Model\Tmpl;
 use GX2CMS\TemplateEngine\DefaultTemplate\ApiAttrs;
@@ -15,6 +14,7 @@ use GX2CMS\TemplateEngine\Util\CompileLiteral;
 use GX2CMS\TemplateEngine\Util\CompilerUtil;
 use GX2CMS\TemplateEngine\Util\Html5Util;
 use GX2CMS\TemplateEngine\Util\NodeUtil;
+use GX2CMS\TemplateEngine\Handlebars\GX2CMContext;
 
 
 final class DefaultTemplate implements InterfaceEzpzTmpl
@@ -87,7 +87,7 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
             ));
         }
 
-        $buffer = $this->engine()->render($buffer, new \GX2CMS\TemplateEngine\Handlebars\Context($context->getAsArray()));
+        $buffer = $this->engine()->render($buffer, new GX2CMContext($context->getAsArray()));
 
         unset($html5, $dom, $tmplContent);
 
@@ -136,9 +136,6 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
                     }
                 }
             }
-        }
-        else if ($node instanceof \DOMText) {
-            //CompileLiteral::process($node, $context);
         }
     }
 
@@ -204,10 +201,12 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
 
             foreach ($list as $helper)
             {
-                $parts = explode(DS, $helper);
-                $last = str_replace('.php', '', end($parts));
+                $last = pathinfo($helper, PATHINFO_BASENAME);
                 $cls = $this->handlebarsHelperPackage . '\\' . $last;
-                self::$engine->addHelper(str_replace('helper', '', strtolower($last)), new $cls);
+                $helperName = str_replace('helper', '', strtolower($last));
+                if (!self::$engine->hasHelper($helperName)) {
+                    self::$engine->addHelper($helperName, new $cls);
+                }
             }
         }
 

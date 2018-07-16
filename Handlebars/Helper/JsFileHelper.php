@@ -2,10 +2,9 @@
 
 namespace GX2CMS\TemplateEngine\Handlebars\Helper;
 
-use GX2CMS\TemplateEngine\Util\StringUtil;
-use Handlebars\Context;
-use Handlebars\Helper;
-use Handlebars\Template;
+use GX2CMS\TemplateEngine\Handlebars\Context;
+use GX2CMS\TemplateEngine\Handlebars\Helper;
+use GX2CMS\TemplateEngine\Handlebars\Template;
 
 class JsFileHelper implements Helper
 {

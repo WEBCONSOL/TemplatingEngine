@@ -3,9 +3,9 @@
 namespace GX2CMS\TemplateEngine\Handlebars\Helper;
 
 use GX2CMS\TemplateEngine\Util\StringUtil;
-use Handlebars\Context;
-use Handlebars\Helper;
-use Handlebars\Template;
+use GX2CMS\TemplateEngine\Handlebars\Context;
+use GX2CMS\TemplateEngine\Handlebars\Helper;
+use GX2CMS\TemplateEngine\Handlebars\Template;
 
 /**
  * Handlebars halper interface
@@ -28,6 +28,10 @@ class GtHelper implements Helper
         $parsedArgs = $template->parseArguments($args);
         $tmp1 = $context->get($parsedArgs[0]);
         $tmp2 = $context->get($parsedArgs[1]);
+
+        if (!is_numeric($tmp1) || !is_numeric($tmp2)) {
+            die("Both arguments must be numerical value");
+        }
 
         if ($tmp1 > $tmp2) {
             $template->setStopToken('else');

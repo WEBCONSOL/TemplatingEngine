@@ -2,7 +2,7 @@
 
 namespace GX2CMS\TemplateEngine\Util;
 
-use Masterminds\HTML5;
+use GX2CMS\TemplateEngine\HTML5;
 
 final class Html5Util
 {

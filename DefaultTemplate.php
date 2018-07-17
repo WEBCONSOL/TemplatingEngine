@@ -201,7 +201,7 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
 
             foreach ($list as $helper)
             {
-                $last = pathinfo($helper, PATHINFO_BASENAME);
+                $last = pathinfo($helper, PATHINFO_FILENAME);
                 $cls = $this->handlebarsHelperPackage . '\\' . $last;
                 $helperName = str_replace('helper', '', strtolower($last));
                 if (!self::$engine->hasHelper($helperName)) {

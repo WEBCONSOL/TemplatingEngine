@@ -1,5 +1,6 @@
 {
     "name": "webconsol/template-engine",
+    "version": "dev-master",
     "description": "WEBCONSOL Template Rendering Engine",
     "type": "library",
     "keywords": ["template engine"],

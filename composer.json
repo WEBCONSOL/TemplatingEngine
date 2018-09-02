@@ -14,8 +14,7 @@
         }
     ],
     "require": {
-        "php": ">=7.0",
-        "vendor/webconsol/template-engine": "dev-master"
+        "php": ">=7.0"
     },
     "repositories": [
         {

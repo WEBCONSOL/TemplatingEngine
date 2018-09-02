@@ -1,9 +1,43 @@
 {
     "name": "webconsol/template-engine",
-    "description": "Template Rendering Engine",
+    "description": "WEBCONSOL Template Rendering Engine",
+    "type": "library",
+    "keywords": ["template engine"],
+    "homepage": "https://github.com/WEBCONSOL/TemplatingEngine",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Sothea Nim",
+            "email": "sothea.nim@webconsol.com",
+            "homepage": "https://www.webconsol.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "vendor/webconsol/template-engine": "dev-master"
+    },
+    "repositories": [
+        {
+            "type": "package",
+            "package": {
+                "name": "webconsol/template-engine",
+                "version": "dev-master",
+                "source": {
+                    "url": "git@github.com:WEBCONSOL/TemplatingEngine.git",
+                    "type": "git",
+                    "reference": "master"
+                },
+                "autoload": {
+                    "psr-0" : {
+                        "GX2CMS\\TemplateEngine\\" : "src"
+                    }
+                }
+            }
+        }
+    ],
     "autoload": {
-        "psr-4" : {
-            "GX2CMS\\TemplateEngine\\" : ""
+        "psr-0" : {
+            "GX2CMS\\TemplateEngine\\" : "src/"
         }
     }
 }

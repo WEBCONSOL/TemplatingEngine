@@ -30,7 +30,7 @@
                 },
                 "autoload": {
                     "psr-0" : {
-                        "GX2CMS\\TemplateEngine\\" : "src"
+                        "GX2CMS\\TemplateEngine\\" : "src/"
                     }
                 }
             }

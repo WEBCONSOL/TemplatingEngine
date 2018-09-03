@@ -196,15 +196,16 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
         if (!(self::$engine instanceof Handlebars))
         {
             self::$engine = new Handlebars();
-
             $list = glob(__DIR__ . DS . 'Handlebars' . DS . 'Helper' . DS . '*.php');
-
             foreach ($list as $helper)
             {
                 $last = pathinfo($helper, PATHINFO_FILENAME);
                 $cls = $this->handlebarsHelperPackage . '\\' . $last;
                 $helperName = str_replace('helper', '', strtolower($last));
                 if (!self::$engine->hasHelper($helperName)) {
+                    if (!class_exists($cls, false)) {
+                        include $helper;
+                    }
                     self::$engine->addHelper($helperName, new $cls);
                 }
             }

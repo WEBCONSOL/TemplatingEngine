@@ -16,6 +16,10 @@ final class Ezpz
      */
     public function __construct(InterfaceEzpzTmpl $engine=null)
     {
+        if (!defined('GX2CMS_PLATFORM_TAG')) {
+            include __DIR__ . '/constants.php';
+        }
+
         if ($engine === null) {
             $this->loadEngine(new DefaultTemplate());
         }

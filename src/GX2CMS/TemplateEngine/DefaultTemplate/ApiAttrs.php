@@ -13,14 +13,14 @@ class ApiAttrs
     const EZPZ_LIST_ITEM = 'item.';
     const HB_LIST_ITEM = 'this.';
 
-    const TEST = "data-ezpz-test";
-    const LIST = "data-ezpz-list";
-    const INCLUDE = "data-ezpz-include";
-    const RESOURCE = "data-ezpz-resource";
-    const USE = "data-ezpz-use";
+    const TEST = "data-".GX2CMS_PLATFORM_TAG."-test";
+    const LIST = "data-".GX2CMS_PLATFORM_TAG."-list";
+    const INCLUDE = "data-".GX2CMS_PLATFORM_TAG."-include";
+    const RESOURCE = "data-".GX2CMS_PLATFORM_TAG."-resource";
+    const USE = "data-".GX2CMS_PLATFORM_TAG."-use";
 
-    const ELEMENT = "data-ezpz-element";
-    const ATTRIBUTE = "data-ezpz-attribute";
+    const ELEMENT = "data-".GX2CMS_PLATFORM_TAG."-element";
+    const ATTRIBUTE = "data-".GX2CMS_PLATFORM_TAG."-attribute";
 
     const API_SERVICES = array(
         self::TEST => "Test",

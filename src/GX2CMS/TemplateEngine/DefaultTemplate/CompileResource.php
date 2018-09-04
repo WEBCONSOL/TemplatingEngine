@@ -2,7 +2,7 @@
 
 namespace GX2CMS\TemplateEngine\DefaultTemplate;
 
-use GX2CMS\Lib\FileExtension;
+use GX2CMS\TemplateEngine\Util;
 use GX2CMS\TemplateEngine\Util\Response;
 use GX2CMS\TemplateEngine\Ezpz;
 use GX2CMS\TemplateEngine\InterfaceEzpzTmpl;
@@ -23,9 +23,9 @@ class CompileResource implements CompileInterface
      */
     public function __invoke(\DOMElement &$node, \DOMElement &$child, Context &$context, Tmpl &$tmpl, InterfaceEzpzTmpl &$engine): bool
     {
-        $arr = $this->parseDataEzpzResource($child->getAttribute(ApiAttrs::RESOURCE));
-        $path = $arr['path'];
-        $resource = $arr['resource'];
+        $attrResource = $this->parseDataEzpzResource($child->getAttribute(ApiAttrs::RESOURCE));
+        $path = $attrResource['path'];
+        $resource = $attrResource['resource'];
         $selector = $child->hasAttribute(ApiAttrs::DATA_SELECTOR) ? $child->getAttribute(ApiAttrs::DATA_SELECTOR) : 'properties';
 
         if (!StringUtil::startsWith($resource, $engine->getResourceRoot())) {
@@ -37,14 +37,20 @@ class CompileResource implements CompileInterface
         }
 
         $last = pathinfo($absRootPath, PATHINFO_BASENAME);
-        $html = $absRootPath . DS . $last . '.' . FileExtension::HTML;
-        $data = $absRootPath . DS . 'data' . DS . $selector . '.' . FileExtension::JSON;
+        $html = $absRootPath . DS . $last . '.' . Util\FileExtension::HTML;
+        $data = $absRootPath . DS . 'data' . DS . $selector . '.' . Util\FileExtension::JSON;
 
         $hasHtml = file_exists($html);
         $hasData = file_exists($data);
 
         if ($hasHtml)
         {
+            if (!$hasData) {
+                $dataFromContext = array();
+                $this->fetchData($path, trim($attrResource['resource'], '/'), $context->getAsArray(), $dataFromContext);
+                $data = json_encode($dataFromContext);
+            }
+
             $newContext = new Context($data);
             $newTmpl = new Tmpl($html);
             $newTmpl->setPartialsPath($absRootPath);
@@ -75,8 +81,8 @@ class CompileResource implements CompileInterface
                     foreach ($parsys[$path] as $par) {
                         $absRootPath = $engine->getResourceRoot() . trim($par, '/');
                         $last = pathinfo($absRootPath, PATHINFO_BASENAME);
-                        $html = $absRootPath . DS . $last . '.' . FileExtension::HTML;
-                        $data = $absRootPath . DS . 'data' . DS . $selector . '.' . FileExtension::JSON;
+                        $html = $absRootPath . DS . $last . '.' . Util\FileExtension::HTML;
+                        $data = $absRootPath . DS . 'data' . DS . $selector . '.' . Util\FileExtension::JSON;
                         if (file_exists($html) && file_exists($data)) {
                             $newContext = new Context($data);
                             $newTmpl = new Tmpl($html);
@@ -132,5 +138,19 @@ class CompileResource implements CompileInterface
             return array('path' => $matches[1][0], 'resource' => $matches[sizeof($matches)-1][0]);
         }
         return array('path'=>'', 'resource'=>'');
+    }
+
+    private function fetchData(string $path, string $resource, array $data, array &$dataFromContext) {
+        if (!sizeof($dataFromContext)) {
+            foreach ($data as $key=>$item) {
+                if ($key === $path && isset($item['resourceType']) && isset($item['data']) && $resource === trim($item['resourceType'],'/')) {
+                    $dataFromContext['data'] = $item['data'];
+                    break;
+                }
+                else if (is_array($item) && sizeof($item)) {
+                    $this->fetchData($path, $resource, $item, $dataFromContext);
+                }
+            }
+        }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace GX2CMS\TemplateEngine\DefaultTemplate;
 
-use GX2CMS\Lib\FileExtension;
+use GX2CMS\TemplateEngine\Util;
 use GX2CMS\TemplateEngine\Util\Response;
 use GX2CMS\TemplateEngine\InterfaceEzpzTmpl;
 use GX2CMS\TemplateEngine\InterfacePlugin;

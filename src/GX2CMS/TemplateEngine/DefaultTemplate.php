@@ -2,6 +2,8 @@
 
 namespace GX2CMS\TemplateEngine;
 
+use GX2CMS\TemplateEngine\HTML5\Elements;
+use GX2CMS\TemplateEngine\Util\ClientLibs;
 use GX2CMS\TemplateEngine\Util\Response;
 use GX2CMS\TemplateEngine\Util\StringUtil;
 use GX2CMS\TemplateEngine\Handlebars\Handlebars;
@@ -32,6 +34,12 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
     public function __construct()
     {
         $this->tmplPackagePfx = '\\'.get_class($this).'\\Compile';
+        $customElements = array(GX2CMS_PLATFORM_TAG, GX2CMS_INJECT_CSS, GX2CMS_INJECT_JS);
+        foreach ($customElements as $element) {
+            if (!isset(Elements::$html5[$element])) {
+                Elements::$html5[$element] = 1;
+            }
+        }
     }
 
     /**
@@ -43,7 +51,7 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
     public function compile(Context $context, Tmpl $tmpl): string
     {
         $tmplContent = $tmpl->getContent();
-        $this->sly2ezpz($tmplContent);
+        $this->techtag2gx2cmstag($tmplContent);
         $this->invokePluginsToProcessContext($context, $tmpl);
 
         if (StringUtil::hasTag($tmplContent)) {
@@ -67,6 +75,13 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
 
             if ($tmpl->isDOC()) {
                 $buffer = Html5Util::formatOutput($html5, $dom, false);
+                $buffer = str_replace(
+                    array('${'.GX2CMS_STYLESHEET_PLACEHOLDER.'}', '${'.GX2CMS_JAVASCRIPT_PLACEHOLDER.'}'),
+                    array('{{{'.GX2CMS_STYLESHEET_PLACEHOLDER.'}}}', '{{{'.GX2CMS_JAVASCRIPT_PLACEHOLDER.'}}}'),
+                    $buffer
+                );
+                $context->set(GX2CMS_STYLESHEET_PLACEHOLDER, ClientLibs::getCSS());
+                $context->set(GX2CMS_JAVASCRIPT_PLACEHOLDER, ClientLibs::getJS());
             }
             else {
                 $buffer = Html5Util::formatOutput($html5, $dom);
@@ -88,6 +103,14 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
         }
 
         $buffer = $this->engine()->render($buffer, new GX2CMContext($context->getAsArray()));
+
+        if ($tmpl->isDOC()) {
+            $buffer = str_replace(
+                array('${'.TMPL_CLIENTLIB_ROOT.'}', '${'.COMP_CLIENTLIB_ROOT.'}'),
+                array($context->get(TMPL_CLIENTLIB_ROOT, ""), $context->get(COMP_CLIENTLIB_ROOT, "")),
+                $buffer
+            );
+        }
 
         unset($html5, $dom, $tmplContent);
 
@@ -217,8 +240,11 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
     /**
      * @param string $buffer
      */
-    private function sly2ezpz(string &$buffer) {
-        $buffer = str_replace(array('<sly','</sly>','-sly-'), array('<ezpz','</ezpz>','-ezpz-'), $buffer);
+    private function techtag2gx2cmstag(string &$buffer) {
+        $buffer = str_replace(
+            array('<'.GX2CMS_TECHNOLOGY_SLY_TAG,'</'.GX2CMS_TECHNOLOGY_SLY_TAG.'>','-'.GX2CMS_TECHNOLOGY_SLY_TAG.'-'),
+            array('<'.GX2CMS_PLATFORM_TAG,'</'.GX2CMS_PLATFORM_TAG.'>','-'.GX2CMS_PLATFORM_TAG.'-'),
+            $buffer);
     }
 
     /**
@@ -231,6 +257,16 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
             if ($child->getAttribute('type') === 'text/x-handlebars-template') {
                 return true;
             }
+        }
+        else if ($child->nodeName === GX2CMS_INJECT_CSS) {
+            ClientLibs::aggregateCSS(trim($child->nodeValue));
+            $child->nodeValue = "";
+            return true;
+        }
+        else if ($child->nodeName === GX2CMS_INJECT_JS) {
+            ClientLibs::aggregateJS(trim($child->nodeValue));
+            $child->nodeValue = "";
+            return true;
         }
         return false;
     }

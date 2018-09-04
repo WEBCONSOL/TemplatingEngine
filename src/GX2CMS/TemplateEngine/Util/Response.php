@@ -2,7 +2,7 @@
 
 namespace GX2CMS\TemplateEngine\Util;
 
-class Response extends \GuzzleHttp\Psr7\Response
+class Response
 {
     const CODE_OK = 200;
     const CODE_FORBIDDEN = 403;

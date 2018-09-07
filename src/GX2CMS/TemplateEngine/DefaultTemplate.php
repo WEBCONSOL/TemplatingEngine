@@ -50,6 +50,8 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
      */
     public function compile(Context $context, Tmpl $tmpl): string
     {
+        $this->mergeHttpRequestData($context);
+        $this->mergeSessionData($context);
         $tmplContent = $tmpl->getContent();
         $this->techtag2gx2cmstag($tmplContent);
         $this->invokePluginsToProcessContext($context, $tmpl);
@@ -365,4 +367,26 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
      * @return bool
      */
     public function hasPlugins(): bool {return sizeof($this->plugins) > 0;}
+
+    public function mergeHttpRequestData(Context &$context) {
+        $key = 'httpRequest';
+        $data = array();
+        if (strtoupper($_SERVER['REQUEST_METHOD']) === 'GET') {
+            $data = $_GET;
+        }
+        else if (strtoupper($_SERVER['REQUEST_METHOD']) === 'POST') {
+            $data = $_POST;
+        }
+        if (!$context->has($key) && sizeof($data)) {
+            $context->set($key, $data);
+        }
+    }
+
+    public function mergeSessionData(Context &$context) {
+        $key = 'session_data';
+        $data = isset($_SESSION) && is_array($_SESSION) ? $_SESSION : array();
+        if (!$context->has($key) && sizeof($data)) {
+            $context->set($key, $data);
+        }
+    }
 }

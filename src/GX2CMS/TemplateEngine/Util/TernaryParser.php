@@ -2,7 +2,7 @@
 
 namespace GX2CMS\TemplateEngine\Util;
 
-use Utilities\ListUtil;
+use WC\Models\ListModel;
 
 class TernaryParser
 {
@@ -14,7 +14,7 @@ class TernaryParser
         }
 
         if (!empty($matches)) {
-            $list = new ListUtil($matches);
+            $list = new ListModel($matches);
             $matches = $list->getAsArray();
             if ($list->count() >= 4 && sizeof($list->get(0)) && sizeof($list->get(1)) && sizeof($list->get(1)) && sizeof($list->get(3))) {
                 $tokens = array('===',      '!==',      '!=',       '==',       '>=',   '<=',   '>',    '<');

@@ -21,6 +21,21 @@ class GX2CMContext extends Context
             }
             return $ret;
         }
+
+        if (strpos($variableName, "==")) {
+            $parts = explode('==',$variableName);
+            foreach ($parts as $k=>$v) {
+                $parts[$k] = trim($v);
+            }
+            if (sizeof($parts) === 2) {
+                $var = $this->get($parts[0]);
+                if ($var == $parts[1]) {
+                    return true;
+                }
+                return false;
+            }
+        }
+
         if (strpos($variableName, '||') !== false) {
             $parts = explode('||', $variableName);
             $val1 = $this->getConstant($parts[0]);
@@ -37,6 +52,7 @@ class GX2CMContext extends Context
             }
             return parent::get($parts[1], $strict);
         }
+
         $constant = $this->getConstant($variableName);
 
         if ($constant) {

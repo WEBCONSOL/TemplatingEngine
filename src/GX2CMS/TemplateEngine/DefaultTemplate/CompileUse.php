@@ -43,7 +43,7 @@ class CompileUse implements CompileInterface
             if (sizeof($matches) > 1 && isset($matches[1]) && isset($matches[1][0]) && $matches[1][0]) {
                 $attrVal = $matches[1][0];
             }
-            $data = $tmpl->getPartialsPath() . '/data/' . $attrVal . '.' . FileExtension::JSON;
+            $data = $tmpl->getPartialsPath() . '/data/' . $attrVal . '.' . Util\FileExtension::JSON;
             if (file_exists($data)) {
                 $data = json_decode(file_get_contents($data), true);
                 $currentData = $context->getAsArray();

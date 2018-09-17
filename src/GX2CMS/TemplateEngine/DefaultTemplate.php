@@ -383,7 +383,7 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
     }
 
     public function mergeSessionData(Context &$context) {
-        $key = 'session_data';
+        $key = 'session_user_data';
         $data = isset($_SESSION) && is_array($_SESSION) ? $_SESSION : array();
         if (!$context->has($key) && sizeof($data)) {
             $context->set($key, $data);

@@ -2,11 +2,15 @@
 
 namespace GX2CMS\TemplateEngine\Handlebars;
 
+use GX2CMS\TemplateEngine\Util\CompilerUtil;
 use GX2CMS\TemplateEngine\Util\Response;
 use GX2CMS\TemplateEngine\Util\StringUtil;
 
 class GX2CMContext extends Context
 {
+    private $conditional_statement_replaces = array("!", "=", "&", "|", ">", "<");
+    private $conditional_statement_patterns = array(GX2CMS_NEGATE_SIGN, GX2CMS_EQ_SIGN, GX2CMS_AND_SIGN, GX2CMS_OR_SIGN, GX2CMS_GT_SIGN, GX2CMS_LT_SIGN);
+
     public function __construct($context = null)
     {
         parent::__construct($context);
@@ -14,43 +18,31 @@ class GX2CMContext extends Context
 
     public function get($variableName, $strict = false)
     {
+        if ($this->isConditionalStatement($variableName)) {
+            $variableName = str_replace($this->conditional_statement_patterns, $this->conditional_statement_replaces, $variableName);
+            $token = CompilerUtil::conditionalExpressionTokenizer($variableName);
+            if (isset($token['vars']) && is_array($token['vars']) && isset($token['statement'])) {
+                $statement = $token['statement'];
+                foreach ($token['vars'] as $var) {
+                    if ($var === 'true' || $var === 'false') {
+                        ${$var} = $var==='true'?true:false;
+                    }
+                    else if (!$this->getConstant($var)) {
+                        $newVarName = str_replace('.', '_', $var);
+                        $statement = str_replace($var, $newVarName, $statement);
+                        ${$newVarName} = $this->get($var);
+                    }
+                }
+                return eval('return (' . $statement . ');');
+            }
+        }
+
         if ($variableName instanceof StringWrapper) {
             $ret = (string)$variableName;
             if ($ret == "''") {
                 $ret = "";
             }
             return $ret;
-        }
-
-        if (strpos($variableName, "==")) {
-            $parts = explode('==',$variableName);
-            foreach ($parts as $k=>$v) {
-                $parts[$k] = trim($v);
-            }
-            if (sizeof($parts) === 2) {
-                $var = $this->get($parts[0]);
-                if ($var == $parts[1]) {
-                    return true;
-                }
-                return false;
-            }
-        }
-
-        if (strpos($variableName, '||') !== false) {
-            $parts = explode('||', $variableName);
-            $val1 = $this->getConstant($parts[0]);
-            if ($val1) {
-                return $val1;
-            }
-            $val1 = parent::get($parts[0], $strict);
-            if ($val1) {
-                return $val1;
-            }
-            $val2 = $this->getConstant($parts[1]);
-            if ($val2) {
-                return $val2;
-            }
-            return parent::get($parts[1], $strict);
         }
 
         $constant = $this->getConstant($variableName);
@@ -126,5 +118,18 @@ class GX2CMContext extends Context
             return $varName;
         }
         return "";
+    }
+
+    private function isConditionalStatement($variableName) {
+        foreach ($this->conditional_statement_replaces as $char) {
+            if (strpos($variableName, $char) !== false) {
+                return true;
+            }
+        }
+        foreach ($this->conditional_statement_patterns as $char) {
+            if (strpos($variableName, $char) !== false) {
+                return true;
+            }
+        }
     }
 }

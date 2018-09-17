@@ -20,6 +20,7 @@ class CompileTest implements CompileInterface
      */
     public function __invoke(\DOMElement &$node, \DOMElement &$child, Context &$context, Tmpl &$tmpl, InterfaceEzpzTmpl &$engine): bool
     {
+        /*
         $matches = CompilerUtil::parseLiteral($child->getAttribute(ApiAttrs::TEST));
         $eval = false;
 
@@ -102,5 +103,20 @@ class CompileTest implements CompileInterface
         }
 
         return $eval ? true : false;
+        */
+        $matches = CompilerUtil::parseLiteral($child->getAttribute(ApiAttrs::TEST));
+        if (sizeof($matches)) {
+            $child->removeAttribute(ApiAttrs::TEST);
+            $patterns = array("!", "=", "&", "|", ">", "<", " ");
+            $replaces = array(GX2CMS_NEGATE_SIGN, GX2CMS_EQ_SIGN, GX2CMS_AND_SIGN, GX2CMS_OR_SIGN, GX2CMS_GT_SIGN, GX2CMS_LT_SIGN, "");
+            $matches[1][0] = str_replace($patterns, $replaces, $matches[1][0]);
+            $newNode1 = new \DOMText();
+            $newNode1->data = '{{#if ' . $matches[1][0] . '}}';
+            $node->insertBefore($newNode1, $child);
+            $newNode2 = new \DOMText();
+            $newNode2->data = '{{/if}}';
+            $node->insertBefore($newNode2, $child->nextSibling);
+        }
+        return true;
     }
 }

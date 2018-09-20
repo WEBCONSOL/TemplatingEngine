@@ -23,9 +23,11 @@ class CompileResource implements CompileInterface
      */
     public function __invoke(\DOMElement &$node, \DOMElement &$child, Context &$context, Tmpl &$tmpl, InterfaceEzpzTmpl &$engine): bool
     {
-        $attrResource = $this->parseDataEzpzResource($child->getAttribute(ApiAttrs::RESOURCE));
+        $attrValue = $child->getAttribute(ApiAttrs::RESOURCE);
+        $attrResource = $this->parseDataEzpzResource($attrValue);
         $path = $attrResource['path'];
         $resource = $attrResource['resource'];
+        if (!$path && !$resource && $attrValue) {$resource = $attrValue;}
         $selector = $child->hasAttribute(ApiAttrs::DATA_SELECTOR) ? $child->getAttribute(ApiAttrs::DATA_SELECTOR) : 'properties';
 
         if (!StringUtil::startsWith($resource, $engine->getResourceRoot())) {

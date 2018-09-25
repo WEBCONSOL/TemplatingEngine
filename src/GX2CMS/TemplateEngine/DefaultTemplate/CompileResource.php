@@ -4,7 +4,7 @@ namespace GX2CMS\TemplateEngine\DefaultTemplate;
 
 use GX2CMS\TemplateEngine\Util;
 use GX2CMS\TemplateEngine\Util\Response;
-use GX2CMS\TemplateEngine\Ezpz;
+use GX2CMS\TemplateEngine\GX2CMS;
 use GX2CMS\TemplateEngine\InterfaceEzpzTmpl;
 use GX2CMS\TemplateEngine\Model\Context;
 use GX2CMS\TemplateEngine\Model\Tmpl;
@@ -56,7 +56,7 @@ class CompileResource implements CompileInterface
             $newContext = new Context($data);
             $newTmpl = new Tmpl($html);
             $newTmpl->setPartialsPath($absRootPath);
-            $templateEngine = new Ezpz();
+            $templateEngine = new GX2CMS();
             if ($engine->hasResourceRoot()) {
                 $templateEngine->getEngine()->setResourceRoot($engine->getResourceRoot());
             }
@@ -89,7 +89,7 @@ class CompileResource implements CompileInterface
                             $newContext = new Context($data);
                             $newTmpl = new Tmpl($html);
                             $newTmpl->setPartialsPath($absRootPath);
-                            $templateEngine = new Ezpz();
+                            $templateEngine = new GX2CMS();
                             if ($engine->hasResourceRoot()) {
                                 $templateEngine->getEngine()->setResourceRoot($engine->getResourceRoot());
                             }

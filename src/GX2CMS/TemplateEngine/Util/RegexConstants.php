@@ -12,4 +12,6 @@ final class RegexConstants
     const TERNARY_VAR = '/\${(.[^}]*)\?(.[^}]*)\:(.[^}]*)}/';
     const TERNARY_VAL = '/(.[^\?]*)\?(.[^\:]*)\:(.*)/';
     const WHITESPACE = '/[\s+\r\n\t]/';
+
+    public static $allowedContext = array('html', 'text', 'elementName', 'attributeName', 'attribute', 'uri', 'styleString', 'scriptString', 'number', 'unsafe');
 }

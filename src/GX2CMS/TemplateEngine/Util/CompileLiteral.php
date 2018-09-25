@@ -7,8 +7,6 @@ use GX2CMS\TemplateEngine\Model\Context;
 
 class CompileLiteral
 {
-    private static $allowedContext = array('html', 'text', 'elementName', 'attributeName', 'attribute', 'uri', 'styleString', 'scriptString', 'number', 'unsafe');
-
     /**
      * @param Context $context
      * @param string  $data
@@ -93,35 +91,7 @@ class CompileLiteral
      * @return string
      */
     private static function handleContext(Context &$context, string $data): string {
-        $matches = PregUtil::getMatches(RegexConstants::CONTEXT, $data);
-        if (sizeof($matches) >= 4) {
-            $varName = trim($matches[1][0]);
-            $contextName = $matches[3][0];
-            if (in_array($contextName, self::$allowedContext)) {
-                if ($context->has($varName)) {
-                    $tmpVal = $context->get($varName);
-                    if (StringUtil::hasTag($tmpVal)) {
-                        return $tmpVal;
-                    }
-                    else {
-                        return ApiAttrs::TAG_HB_CTX_OPEN . "'" . trim($context->get($varName)) . "'" . ApiAttrs::TAG_HB_CTX_CLOSE;
-                    }
-                }
-                else {
-                    $tmpVal = CompilerUtil::getVarValue($context, explode('.', $varName));
-                    if ($tmpVal) {
-                        if (is_array($tmpVal) || is_object($tmpVal)) {
-                            $tmpVal = json_encode($tmpVal);
-                        }
-                        return ApiAttrs::TAG_HB_CTX_OPEN . "'" . trim($tmpVal) . "'" . ApiAttrs::TAG_HB_CTX_CLOSE;
-                    }
-                }
-            }
-            else {
-                Response::renderPlaintext("You are using forbidden context: ".$contextName.". Allowed context are: " . implode(', ', self::$allowedContext));
-            }
-        }
-        return "";
+        return ApiAttrs::TAG_HB_CTX_OPEN . $data . ApiAttrs::TAG_HB_CTX_CLOSE;
     }
 
     private static function handleI18N(Context &$context, string $data): string {

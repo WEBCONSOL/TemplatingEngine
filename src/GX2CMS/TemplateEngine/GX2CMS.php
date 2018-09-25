@@ -5,7 +5,7 @@ namespace GX2CMS\TemplateEngine;
 use GX2CMS\TemplateEngine\Model\Context;
 use GX2CMS\TemplateEngine\Model\Tmpl;
 
-final class Ezpz
+final class GX2CMS
 {
     private $engine;
 

@@ -17,6 +17,7 @@ use GX2CMS\TemplateEngine\Util\CompilerUtil;
 use GX2CMS\TemplateEngine\Util\Html5Util;
 use GX2CMS\TemplateEngine\Util\NodeUtil;
 use GX2CMS\TemplateEngine\Handlebars\GX2CMContext;
+use WC\Utilities\PregUtil;
 
 
 final class DefaultTemplate implements InterfaceEzpzTmpl
@@ -95,6 +96,23 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
             $buffer = CompileLiteral::getParsedData($context, $tmplContent);
         }
 
+        if ($tmplContent && $buffer) {
+            $matches = PregUtil::getMatches('/\<(.[^>]*)>(.[^<]*)<\/(.[^>]*)>/', $tmplContent);
+            if (sizeof($matches)) {
+                $parts = explode($matches[0][0], $tmplContent);
+                $firstPart = $parts[0];
+                if ($firstPart) {
+                    $buffer = CompileLiteral::getParsedData($context, $firstPart) . $buffer;
+                }
+            }
+        }
+
+        foreach ($dom->childNodes as $node) {
+            if ($node instanceof \DOMElement) {
+                $this->process($html5, $node, $context, $tmpl, $this, ApiAttrs::API_SERVICES);
+            }
+        }
+
         if ($tmpl->hasPartialsPath()) {
             $this->engine()->setPartialsLoader(new FilesystemLoader(
                 $tmpl->getPartialsPath(),
@@ -136,7 +154,7 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
 
                     if ($child instanceof \DOMElement) {
 
-                        if ($this->ignore($child)) {
+                        if ($this->ignore($child, $context)) {
                             $passed = false;
                         }
                         else if ($child->hasAttributes()) {
@@ -254,9 +272,12 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
      *
      * @return bool
      */
-    private function ignore(\DOMElement &$child) {
+    private function ignore(\DOMElement &$child, Context &$context) {
         if ($child->nodeName === 'script') {
             if ($child->getAttribute('type') === 'text/x-handlebars-template') {
+                $var = 'hb' . md5($child->nodeValue);
+                $context->set($var, $child->nodeValue);
+                $child->nodeValue = '{{{'.$var.'}}}';
                 return true;
             }
         }

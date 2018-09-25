@@ -5,9 +5,10 @@ namespace GX2CMS\TemplateEngine\Util;
 final class ClientLibs
 {
     private static $data = array('css'=>array(), 'js'=>array(), 'style'=>array(), 'script'=>array());
+    private static $hashedData = array('css'=>array(), 'js'=>array());
 
     public static function aggregateCSS(string $data) {
-        if (!in_array($data, self::$data['css'])) {
+        if (!self::dataExists($data, 'css')) {
             $matches = PregUtil::getMatches('/(.*)\.css$/', $data);
             if (sizeof($matches) && isset($matches[1]) && isset($matches[1][0]) && $matches[1][0]) {
                 self::$data['css'][] = $data;
@@ -19,7 +20,7 @@ final class ClientLibs
     }
 
     public static function aggregateJS(string $data) {
-        if (!in_array($data, self::$data['js'])) {
+        if (!self::dataExists($data, 'js')) {
             $matches = PregUtil::getMatches('/(.*)\.js$/', $data);
             if (sizeof($matches) && isset($matches[1]) && isset($matches[1][0]) && $matches[1][0]) {
                 self::$data['js'][] = $data;
@@ -58,5 +59,13 @@ final class ClientLibs
             $output[] = '</script>';
         }
         return implode('', $output);
+    }
+
+    private static function dataExists(string $data, string $key): bool {
+        if (in_array(md5($data), self::$hashedData[$key])) {
+            return true;
+        }
+        self::$hashedData[$key][] = md5($data);
+        return false;
     }
 }

@@ -11,8 +11,8 @@ use WC\Utilities\PregUtil;
 
 class GX2CMContext extends Context
 {
-    private $conditional_statement_replaces = array("!", "=", "&", "|", ">", "<");
-    private $conditional_statement_patterns = array(GX2CMS_NEGATE_SIGN, GX2CMS_EQ_SIGN, GX2CMS_AND_SIGN, GX2CMS_OR_SIGN, GX2CMS_GT_SIGN, GX2CMS_LT_SIGN);
+    private $conditional_statement_replaces = array("!", "=", "&", "|", ">", "<", "'", '"');
+    private $conditional_statement_patterns = array(GX2CMS_NEGATE_SIGN, GX2CMS_EQ_SIGN, GX2CMS_AND_SIGN, GX2CMS_OR_SIGN, GX2CMS_GT_SIGN, GX2CMS_LT_SIGN, GX2CMS_SINGLE_QUOTE, GX2CMS_DOUBLE_QUOTE);
 
     public function __construct($context = null)
     {
@@ -52,9 +52,9 @@ class GX2CMContext extends Context
                             ${$var} = $var==='true'?true:false;
                         }
                         else if (!$this->getConstant($var)) {
-                            $newVarName = str_replace('.', '_', $var);
+                            $newVarName = str_replace(array('.','-'), '_', $var);
                             $statement = str_replace($var, $newVarName, $statement);
-                            ${$newVarName} = $this->get($var);
+                            ${$newVarName} = parent::get($var);
                         }
                     }
                     return eval('return (' . $statement . ');');

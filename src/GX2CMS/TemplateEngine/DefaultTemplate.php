@@ -107,12 +107,6 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
             }
         }
 
-        foreach ($dom->childNodes as $node) {
-            if ($node instanceof \DOMElement) {
-                $this->process($html5, $node, $context, $tmpl, $this, ApiAttrs::API_SERVICES);
-            }
-        }
-
         if ($tmpl->hasPartialsPath()) {
             $this->engine()->setPartialsLoader(new FilesystemLoader(
                 $tmpl->getPartialsPath(),

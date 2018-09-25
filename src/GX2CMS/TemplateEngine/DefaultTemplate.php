@@ -97,11 +97,11 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
         }
 
         if ($tmplContent && $buffer) {
-            $matches = PregUtil::getMatches('/\<(.[^>]*)>(.[^<]*)<\/(.[^>]*)>/', $tmplContent);
+            $matches = PregUtil::getMatches('/\<(.[^>]*)>/', $tmplContent);
             if (sizeof($matches)) {
                 $parts = explode($matches[0][0], $tmplContent);
                 $firstPart = $parts[0];
-                if ($firstPart) {
+                if ($firstPart && $firstPart === strip_tags($firstPart)) {
                     $buffer = CompileLiteral::getParsedData($context, $firstPart) . $buffer;
                 }
             }

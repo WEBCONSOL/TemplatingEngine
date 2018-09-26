@@ -11,9 +11,6 @@ use WC\Utilities\PregUtil;
 
 class GX2CMContext extends Context
 {
-    private $conditional_statement_replaces = array("!", "=", "&", "|", ">", "<", "'", '"');
-    private $conditional_statement_patterns = array(GX2CMS_NEGATE_SIGN, GX2CMS_EQ_SIGN, GX2CMS_AND_SIGN, GX2CMS_OR_SIGN, GX2CMS_GT_SIGN, GX2CMS_LT_SIGN, GX2CMS_SINGLE_QUOTE, GX2CMS_DOUBLE_QUOTE);
-
     public function __construct($context = null)
     {
         parent::__construct($context);
@@ -27,7 +24,7 @@ class GX2CMContext extends Context
         }
 
         if ($this->isConditionalStatement($variableName)) {
-            $variableName = str_replace(Constants::PATTERNS, Constants::REPLACES, $variableName);
+            $variableName = str_replace(Constants::REPLACES, Constants::PATTERNS, $variableName);
             $token = CompilerUtil::conditionalExpressionTokenizer($variableName);
             if (isset($token['vars']) && is_array($token['vars']) && isset($token['statement'])) {
                 if (sizeof($token['vars'])===2 && StringUtil::contains($variableName, '||')) {
@@ -167,12 +164,12 @@ class GX2CMContext extends Context
     }
 
     private function isConditionalStatement($variableName) {
-        foreach ($this->conditional_statement_replaces as $char) {
+        foreach (Constants::REPLACES as $char) {
             if (strpos($variableName, $char) !== false) {
                 return true;
             }
         }
-        foreach ($this->conditional_statement_patterns as $char) {
+        foreach (Constants::PATTERNS as $char) {
             if (strpos($variableName, $char) !== false) {
                 return true;
             }

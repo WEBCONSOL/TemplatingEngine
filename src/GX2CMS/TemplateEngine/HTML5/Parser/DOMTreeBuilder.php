@@ -190,8 +190,8 @@ class DOMTreeBuilder implements EventHandler
 
         // Fill $nsStack with the defalut HTML5 namespaces, plus the "implicitNamespaces" array taken form $options
         array_unshift($this->nsStack, $implicitNS + array(
-            '' => self::NAMESPACE_HTML
-        ) + $this->implicitNamespaces);
+                '' => self::NAMESPACE_HTML
+            ) + $this->implicitNamespaces);
 
         if ($isFragment) {
             $this->insertMode = static::IM_IN_BODY;
@@ -321,8 +321,8 @@ class DOMTreeBuilder implements EventHandler
         // when we found a tag thats appears inside $nsRoots, we have to switch the defalut namespace
         if (isset($this->nsRoots[$lname]) && $this->nsStack[0][''] !== $this->nsRoots[$lname]) {
             array_unshift($this->nsStack, array(
-                '' => $this->nsRoots[$lname]
-            ) + $this->nsStack[0]);
+                    '' => $this->nsRoots[$lname]
+                ) + $this->nsStack[0]);
             $pushes ++;
         }
         $needsWorkaround = false;
@@ -332,21 +332,21 @@ class DOMTreeBuilder implements EventHandler
                 if ($aName === 'xmlns') {
                     $needsWorkaround = $aVal;
                     array_unshift($this->nsStack, array(
-                        '' => $aVal
-                    ) + $this->nsStack[0]);
+                            '' => $aVal
+                        ) + $this->nsStack[0]);
                     $pushes ++;
                 } elseif ((($pos = strpos($aName, ':')) ? substr($aName, 0, $pos) : '') === 'xmlns') {
                     array_unshift($this->nsStack, array(
-                        substr($aName, $pos + 1) => $aVal
-                    ) + $this->nsStack[0]);
+                            substr($aName, $pos + 1) => $aVal
+                        ) + $this->nsStack[0]);
                     $pushes ++;
                 }
             }
         }
 
         if ($this->onlyInline && Elements::isA($lname, Elements::BLOCK_TAG)) {
-        	$this->autoclose($this->onlyInline);
-        	$this->onlyInline = null;
+            $this->autoclose($this->onlyInline);
+            $this->onlyInline = null;
         }
 
         try {
@@ -376,7 +376,7 @@ class DOMTreeBuilder implements EventHandler
         }
 
         if (Elements::isA($lname, Elements::BLOCK_ONLY_INLINE)) {
-        	$this->onlyInline = $lname;
+            $this->onlyInline = $lname;
         }
 
         // When we add some namespacess, we have to track them. Later, when "endElement" is invoked, we have to remove them.
@@ -421,7 +421,7 @@ class DOMTreeBuilder implements EventHandler
             }
 
             // This is necessary on a non-DTD schema, like HTML5.
-            if ($aName == 'id') {
+            if ($aName == 'id' && $ele->getAttribute($aName) !== $aVal) {
                 $ele->setIdAttribute('id', true);
             }
         }

@@ -24,17 +24,21 @@ class CompileElement implements CompileInterface
     public function __invoke(\DOMElement &$node, \DOMElement &$child, Context &$context, Tmpl &$tmpl, InterfaceEzpzTmpl &$engine): bool
     {
         $attr = $child->getAttribute(ApiAttrs::ELEMENT);
-        $matches = CompilerUtil::parseLiteral($attr);
-        if (sizeof($matches)) {
-            $attr = $context->has($matches[1][0]) ? $context->has($matches[1][0]) : CompilerUtil::getVarValue($context, explode('.', $matches[1][0]));
-        }
+        if ($attr) {
+            $matches = CompilerUtil::parseLiteral($attr);
+            if (sizeof($matches)) {
+                $attr = $context->has($matches[1][0]) ? $context->has($matches[1][0]) : CompilerUtil::getVarValue($context, explode('.', $matches[1][0]));
+            }
 
-        if (in_array($attr, $this->allowedElements)) {
-            $child->removeAttribute(ApiAttrs::ELEMENT);
-            NodeUtil::changeName($child, $attr);
-        }
-        else {
-            die("Compiling Error. Tag name: " . $attr . ' is not allowed. Allowed tag names are: ' . implode(', ', $this->allowedElements));
+            if ($attr) {
+                if (in_array($attr, $this->allowedElements)) {
+                    $child->removeAttribute(ApiAttrs::ELEMENT);
+                    NodeUtil::changeName($child, $attr);
+                }
+                else {
+                    die("Compiling Error. Tag name: " . $attr . ' is not allowed. Allowed tag names are: ' . implode(', ', $this->allowedElements));
+                }
+            }
         }
 
         return true;

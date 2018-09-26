@@ -6,6 +6,7 @@ use GX2CMS\TemplateEngine\InterfaceEzpzTmpl;
 use GX2CMS\TemplateEngine\Model\Context;
 use GX2CMS\TemplateEngine\Model\Tmpl;
 use GX2CMS\TemplateEngine\Util\CompilerUtil;
+use GX2CMS\TemplateEngine\Util\Constants;
 
 class CompileTest implements CompileInterface
 {
@@ -108,9 +109,7 @@ class CompileTest implements CompileInterface
         $matches = CompilerUtil::parseLiteral($attrVal);
         if (sizeof($matches)) {
             $child->removeAttribute(ApiAttrs::TEST);
-            $patterns = array("!", "=", "&", "|", ">", "<", "'", '"', " ");
-            $replaces = array(GX2CMS_NEGATE_SIGN, GX2CMS_EQ_SIGN, GX2CMS_AND_SIGN, GX2CMS_OR_SIGN, GX2CMS_GT_SIGN, GX2CMS_LT_SIGN, GX2CMS_SINGLE_QUOTE, GX2CMS_DOUBLE_QUOTE, "");
-            $matches[1][0] = str_replace($patterns, $replaces, $matches[1][0]);
+            $matches[1][0] = str_replace(Constants::PATTERNS_WITH_WHITESPACE, Constants::REPLACES_WITH_WHITESPACE, $matches[1][0]);
             $newNode1 = new \DOMText();
             $newNode1->data = '{{#if ' . $matches[1][0] . '}}';
             $node->insertBefore($newNode1, $child);

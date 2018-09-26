@@ -2,8 +2,8 @@
 
 namespace GX2CMS\TemplateEngine\Handlebars;
 
-use GX2CMS\TemplateEngine\DefaultTemplate\ApiAttrs;
 use GX2CMS\TemplateEngine\Util\CompilerUtil;
+use GX2CMS\TemplateEngine\Util\Constants;
 use GX2CMS\TemplateEngine\Util\RegexConstants;
 use GX2CMS\TemplateEngine\Util\Response;
 use GX2CMS\TemplateEngine\Util\StringUtil;
@@ -27,7 +27,7 @@ class GX2CMContext extends Context
         }
 
         if ($this->isConditionalStatement($variableName)) {
-            $variableName = str_replace($this->conditional_statement_patterns, $this->conditional_statement_replaces, $variableName);
+            $variableName = str_replace(Constants::PATTERNS, Constants::REPLACES, $variableName);
             $token = CompilerUtil::conditionalExpressionTokenizer($variableName);
             if (isset($token['vars']) && is_array($token['vars']) && isset($token['statement'])) {
                 if (sizeof($token['vars'])===2 && StringUtil::contains($variableName, '||')) {

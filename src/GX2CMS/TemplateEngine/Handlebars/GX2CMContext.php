@@ -123,7 +123,7 @@ class GX2CMContext extends Context
                 }
             }
             else {
-                Response::renderPlaintext("You are using forbidden context: ".$contextName.". Allowed context are: " . implode(', ', self::$allowedContext));
+                Response::renderPlaintext("You are using forbidden context: ".$contextName.". Allowed context are: " . implode(', ', RegexConstants::$allowedContext));
             }
         }
         return StringUtil::contains($data, '@')&&StringUtil::contains($data, 'context')?"":null;

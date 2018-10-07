@@ -17,6 +17,7 @@ use GX2CMS\TemplateEngine\Util\CompilerUtil;
 use GX2CMS\TemplateEngine\Util\Html5Util;
 use GX2CMS\TemplateEngine\Util\NodeUtil;
 use GX2CMS\TemplateEngine\Handlebars\GX2CMContext;
+use Psr\Http\Message\RequestInterface;
 use WC\Utilities\PregUtil;
 
 
@@ -28,12 +29,16 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
     private $hasElementApiAttr = false;
     private $plugins = array();
     private $resourceRoot = '';
+    private $databaseDriver = null;
+    private $request = null;
 
     /**
      * DefaultTemplate constructor.
      */
-    public function __construct()
+    public function __construct(\Database\Driver $driver=null, RequestInterface $request=null)
     {
+        $this->databaseDriver = $driver;
+        $this->request = $request;
         $this->tmplPackagePfx = '\\'.get_class($this).'\\Compile';
         $customElements = array(GX2CMS_PLATFORM_TAG, GX2CMS_INJECT_CSS, GX2CMS_INJECT_JS);
         foreach ($customElements as $element) {
@@ -404,4 +409,16 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
             $context->set($key, $data);
         }
     }
+
+    public function setDatabaseDriver(\Database\Driver $driver) { $this->databaseDriver = $driver; }
+
+    public function getDatabaseDriver(): \Database\Driver { return $this->databaseDriver; }
+
+    public function hasDatabaseDriver(): bool {return $this->databaseDriver !== null;}
+
+    public function setRequest(RequestInterface $request) { $this->request = $request; }
+
+    public function getRequest(): RequestInterface { return $this->request; }
+
+    public function hasRequest(): bool {return $this->resourceRoot !== null;}
 }

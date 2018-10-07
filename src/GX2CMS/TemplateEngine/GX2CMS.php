@@ -4,6 +4,7 @@ namespace GX2CMS\TemplateEngine;
 
 use GX2CMS\TemplateEngine\Model\Context;
 use GX2CMS\TemplateEngine\Model\Tmpl;
+use Psr\Http\Message\RequestInterface;
 
 final class GX2CMS
 {
@@ -14,14 +15,14 @@ final class GX2CMS
      *
      * @param $engine
      */
-    public function __construct(InterfaceEzpzTmpl $engine=null)
+    public function __construct(InterfaceEzpzTmpl $engine=null, \Database\Driver $driver=null, RequestInterface $request=null)
     {
         if (!defined('GX2CMS_PLATFORM_TAG')) {
             include __DIR__ . '/constants.php';
         }
 
         if ($engine === null) {
-            $this->loadEngine(new DefaultTemplate());
+            $this->loadEngine(new DefaultTemplate($driver, $request));
         }
         else if ($engine instanceof InterfaceEzpzTmpl) {
             $this->engine = $engine;

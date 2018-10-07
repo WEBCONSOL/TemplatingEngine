@@ -4,9 +4,12 @@ namespace GX2CMS\TemplateEngine;
 
 use GX2CMS\TemplateEngine\Model\Context;
 use GX2CMS\TemplateEngine\Model\Tmpl;
+use Psr\Http\Message\RequestInterface;
 
 interface InterfaceEzpzTmpl
 {
+    public function __construct(\Database\Driver $driver=null, RequestInterface $request=null);
+
     public function compile(Context $context, Tmpl $tmpl): string;
 
     public function addPlugin(InterfacePlugin $plugin);
@@ -28,4 +31,16 @@ interface InterfaceEzpzTmpl
     public function setPlugins(array $plugins);
 
     public function hasPlugins(): bool;
+
+    public function setDatabaseDriver(\Database\Driver $driver);
+
+    public function getDatabaseDriver(): \Database\Driver;
+
+    public function hasDatabaseDriver(): bool;
+
+    public function setRequest(RequestInterface $request);
+
+    public function getRequest(): RequestInterface;
+
+    public function hasRequest(): bool;
 }

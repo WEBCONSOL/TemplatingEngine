@@ -2,12 +2,14 @@
 
 namespace GX2CMS\TemplateEngine\DefaultTemplate;
 
+use GX2CMS\TemplateEngine\Model\AbstractComponentModel;
 use GX2CMS\TemplateEngine\Util;
 use GX2CMS\TemplateEngine\Util\Response;
 use GX2CMS\TemplateEngine\InterfaceEzpzTmpl;
 use GX2CMS\TemplateEngine\InterfacePlugin;
 use GX2CMS\TemplateEngine\Model\Context;
 use GX2CMS\TemplateEngine\Model\Tmpl;
+use WC\Models\ListModel;
 
 class CompileUse implements CompileInterface
 {
@@ -26,7 +28,7 @@ class CompileUse implements CompileInterface
         $attrVal = '';
 
         foreach ($child->attributes as $attribute) {
-            if ($attribute instanceof \DOMAttr) {
+            if ($attribute instanceof \DOMAttr && Util\StringUtil::startsWith($attribute->name, ApiAttrs::USE)) {
                 $parts = explode('.', $attribute->name);
                 if (sizeof($parts) > 1) {
                     $var = $parts[1];
@@ -43,9 +45,9 @@ class CompileUse implements CompileInterface
             if (sizeof($matches) > 1 && isset($matches[1]) && isset($matches[1][0]) && $matches[1][0]) {
                 $attrVal = $matches[1][0];
             }
-            $data = $tmpl->getPartialsPath() . '/data/' . $attrVal . '.' . Util\FileExtension::JSON;
-            if (file_exists($data)) {
-                $data = json_decode(file_get_contents($data), true);
+            $file = $tmpl->getPartialsPath() . '/data/' . $attrVal . '.' . Util\FileExtension::JSON;
+            if (file_exists($file)) {
+                $data = json_decode(file_get_contents($file), true);
                 $currentData = $context->getAsArray();
                 $context->set($var, array_merge($currentData, $data));
                 $plugins = $engine->getPlugins();
@@ -56,7 +58,36 @@ class CompileUse implements CompileInterface
                 }
             }
             else {
-                Response::renderPlaintext('Resource data: ' . $attrVal . ' does not exist');
+                $file = $engine->getResourceRoot() . '/' . str_replace('.', '/', $attrVal) . '.php';
+                $dataMissing = true;
+                if (file_exists($file)) {
+                    include $file;
+                    $cls = pathinfo($file, PATHINFO_FILENAME);
+                    if ($engine->hasDatabaseDriver()) {
+                        $model = new $cls($engine->getDatabaseDriver());
+                    }
+                    else {
+                        $model = new $cls();
+                    }
+                    if ($model instanceof AbstractComponentModel) {
+                        $model->process();
+                        if ($engine->hasRequest()) {
+                            $data = $model->response($engine->getRequest());
+                        }
+                        else {
+                            $data = $model->response();
+                        }
+                        $currentData = $context->getAsArray();
+                        $context->set($var, array_merge($currentData, $data->getAsArray()));
+                        $dataMissing = false;
+                    }
+                    else {
+                        Response::renderPlaintext('Resource data: ' . $attrVal . ' has to be either an instance of AbstractComponentModel or a json data');
+                    }
+                }
+                if ($dataMissing) {
+                    Response::renderPlaintext('Resource data: ' . $attrVal . ' does not exist');
+                }
             }
         }
         else

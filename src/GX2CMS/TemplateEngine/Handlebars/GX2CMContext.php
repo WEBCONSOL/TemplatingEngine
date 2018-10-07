@@ -27,6 +27,7 @@ class GX2CMContext extends Context
             $variableName = str_replace(Constants::REPLACES, Constants::PATTERNS, $variableName);
             $token = CompilerUtil::conditionalExpressionTokenizer($variableName);
             if (isset($token['vars']) && is_array($token['vars']) && isset($token['statement'])) {
+
                 if (sizeof($token['vars'])===2 && StringUtil::contains($variableName, '||')) {
                     if (!$this->getConstant($token['vars'][0])) {
                         $token['vars'][0] = $this->get($token['vars'][0]);
@@ -51,9 +52,10 @@ class GX2CMContext extends Context
                         else if (!$this->getConstant($var)) {
                             $newVarName = str_replace(array('.','-'), '_', $var);
                             $statement = str_replace($var, $newVarName, $statement);
-                            ${$newVarName} = parent::get($var);
+                            ${$newVarName} = parent::get(str_replace('item.', 'this.', $var));
                         }
                     }
+
                     return eval('return (' . $statement . ');');
                 }
             }

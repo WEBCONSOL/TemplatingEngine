@@ -12,7 +12,7 @@ abstract class AbstractComponentModel
 
     public function hasDatabaseDriver(): bool {return $this->databaseDriver instanceof \Database\Driver;}
 
-    abstract public function process();
+    abstract public function process(\Psr\Http\Message\RequestInterface $request=null);
 
-    abstract public function response(\Psr\Http\Message\RequestInterface $request=null): \WC\Models\ListModel;
+    abstract public function response(): \WC\Models\ListModel;
 }

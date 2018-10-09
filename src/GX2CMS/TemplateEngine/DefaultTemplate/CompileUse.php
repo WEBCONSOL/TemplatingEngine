@@ -63,23 +63,28 @@ class CompileUse implements CompileInterface
                 if (file_exists($file)) {
                     include $file;
                     $cls = pathinfo($file, PATHINFO_FILENAME);
-                    if ($engine->hasDatabaseDriver()) {
-                        $model = new $cls($engine->getDatabaseDriver());
-                    }
-                    else {
-                        $model = new $cls();
-                    }
-                    if ($model instanceof AbstractComponentModel) {
-                        $model->process();
-                        if ($engine->hasRequest()) {
-                            $data = $model->response($engine->getRequest());
+                    if (is_subclass_of($cls, '\GX2CMS\TemplateEngine\Model\AbstractComponentModel')) {
+                        if ($engine->hasDatabaseDriver()) {
+                            $model = new $cls($engine->getDatabaseDriver());
                         }
                         else {
-                            $data = $model->response();
+                            $model = new $cls();
                         }
-                        $currentData = $context->getAsArray();
-                        $context->set($var, array_merge($currentData, $data->getAsArray()));
-                        $dataMissing = false;
+                        if ($model instanceof AbstractComponentModel) {
+                            if ($engine->hasRequest()) {
+                                $model->process($engine->getRequest());
+                            }
+                            else {
+                                $model->process();
+                            }
+                            $data = $model->response();
+                            $currentData = $context->getAsArray();
+                            $context->set($var, array_merge($currentData, $data->getAsArray()));
+                            $dataMissing = false;
+                        }
+                        else {
+                            Response::renderPlaintext('Resource data: ' . $attrVal . ' has to be either an instance of AbstractComponentModel or a json data');
+                        }
                     }
                     else {
                         Response::renderPlaintext('Resource data: ' . $attrVal . ' has to be either an instance of AbstractComponentModel or a json data');

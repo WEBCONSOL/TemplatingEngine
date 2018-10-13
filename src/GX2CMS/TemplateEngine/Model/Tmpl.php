@@ -42,6 +42,9 @@ class Tmpl
             $this->content = StringUtil::removeHtmlComments($var);
         }
 
+        $removeContent = GX2CMS_COMMENT_START.StringUtil::getStringBetween($this->content, GX2CMS_COMMENT_START, GX2CMS_COMMENT_END).GX2CMS_COMMENT_END;
+        $this->content = str_replace($removeContent, '', $this->content);
+
         $this->loadPartials();
     }
 

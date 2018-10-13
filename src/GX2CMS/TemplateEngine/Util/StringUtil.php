@@ -75,4 +75,17 @@ final class StringUtil
     public static function removeHtmlComments(string $str): string {return preg_replace('/<!--(.[^>]*?)-->/', '', $str);}
 
     public static function removeDoubleSlashes(string $str): string {return preg_replace('/\/+/', '/', $str);}
+
+    public static function getStringBetween($haystack, $startStr, $endStr): string {
+        $n1 = strpos($haystack, $startStr);
+        $n2 = strpos($haystack, $endStr);
+        if ($n1!==false && $n2!==false && $n2 > $n1) {
+            $n1 = $n1 + strlen($startStr);
+            $n = $n2 - $n1;
+            if ($n >= 0) {
+                return substr($haystack, $n1, $n);
+            }
+        }
+        return "";
+    }
 }

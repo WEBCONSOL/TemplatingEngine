@@ -59,10 +59,12 @@ class CompileUse implements CompileInterface
             }
             else {
                 $file = $engine->getResourceRoot() . '/' . str_replace('.', '/', $attrVal) . '.php';
+                $cls = pathinfo($file, PATHINFO_FILENAME);
                 $dataMissing = true;
                 if (file_exists($file)) {
-                    include $file;
-                    $cls = pathinfo($file, PATHINFO_FILENAME);
+                    if (!class_exists($cls, false)) {
+                        include $file;
+                    }
                     if (is_subclass_of($cls, '\GX2CMS\TemplateEngine\Model\AbstractComponentModel')) {
                         if ($engine->hasDatabaseDriver()) {
                             $model = new $cls($engine->getDatabaseDriver());

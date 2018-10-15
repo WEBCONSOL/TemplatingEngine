@@ -26,114 +26,119 @@ class CompileResource implements CompileInterface
         $attrValue = $child->getAttribute(ApiAttrs::RESOURCE);
         $attrResource = $this->parseDataEzpzResource($attrValue);
 
-        if ($this->containedInProperties($context, $attrResource)) {
+        if ($this->resourceExistsInProperties($context, $attrResource)) {
+            Util\ClientLibs::searchClientlibByResource(rtrim($engine->getResourceRoot(), '/').
+                '/'. ltrim($attrResource['resource'], '/'));
             $this->loadResourcesFromProperties($attrResource, $child, $context, $tmpl, $engine);
-            return true;
-        }
-
-        $path = $attrResource['path'];
-        $resource = $attrResource['resource'];
-
-        if (!$path && !$resource && $attrValue) {$resource = $attrValue;}
-        $selector = $child->hasAttribute(ApiAttrs::DATA_SELECTOR) ? $child->getAttribute(ApiAttrs::DATA_SELECTOR) : 'properties';
-
-        if (!StringUtil::startsWith($resource, $engine->getResourceRoot())) {
-            $absRootPath = $engine->getResourceRoot() . trim($resource, '/');
         }
         else {
-            $absRootPath = $resource;
-            $resource = str_replace($engine->getResourceRoot(), '', $absRootPath);
-        }
+            $path = $attrResource['path'];
+            $resource = $attrResource['resource'];
 
-        $last = pathinfo($absRootPath, PATHINFO_BASENAME);
-        $html = $absRootPath . DS . $last . '.' . Util\FileExtension::HTML;
-        $data = $absRootPath . DS . 'data' . DS . $selector . '.' . Util\FileExtension::JSON;
+            if (!$path && !$resource && $attrValue) {$resource = $attrValue;}
+            $selector = $child->hasAttribute(ApiAttrs::DATA_SELECTOR) ? $child->getAttribute(ApiAttrs::DATA_SELECTOR) : 'properties';
 
-        $hasHtml = file_exists($html);
-        $hasData = file_exists($data);
-
-        if ($hasHtml)
-        {
-            if (!$hasData) {
-                $dataFromContext = array();
-                $this->fetchData($path, trim($attrResource['resource'], '/'), $context->getAsArray(), $dataFromContext);
-                $data = json_encode($dataFromContext);
+            if (!StringUtil::startsWith($resource, $engine->getResourceRoot())) {
+                $absRootPath = $engine->getResourceRoot() . trim($resource, '/');
+            }
+            else {
+                $absRootPath = $resource;
+                $resource = str_replace($engine->getResourceRoot(), '', $absRootPath);
             }
 
-            $newContext = new Context($data);
-            $newTmpl = new Tmpl($html);
-            $newTmpl->setPartialsPath($absRootPath);
-            $templateEngine = new GX2CMS();
-            if ($engine->hasResourceRoot()) {
-                $templateEngine->getEngine()->setResourceRoot($engine->getResourceRoot());
+            Util\ClientLibs::searchClientlibByResource(rtrim($engine->getResourceRoot(), '/').
+                '/'. ltrim($attrResource['resource'], '/'));
+
+            $last = pathinfo($absRootPath, PATHINFO_BASENAME);
+            $html = $absRootPath . DS . $last . '.' . Util\FileExtension::HTML;
+            $data = $absRootPath . DS . 'data' . DS . $selector . '.' . Util\FileExtension::JSON;
+
+            $hasHtml = file_exists($html);
+            $hasData = file_exists($data);
+
+            if ($hasHtml)
+            {
+                if (!$hasData) {
+                    $dataFromContext = array();
+                    $this->fetchData($path, trim($attrResource['resource'], '/'), $context->getAsArray(), $dataFromContext);
+                    $data = json_encode($dataFromContext);
+                }
+
+                $newContext = new Context($data);
+                $newTmpl = new Tmpl($html);
+                $newTmpl->setPartialsPath($absRootPath);
+                $templateEngine = new GX2CMS();
+                if ($engine->hasResourceRoot()) {
+                    $templateEngine->getEngine()->setResourceRoot($engine->getResourceRoot());
+                }
+                if ($engine->hasPlugins()) {
+                    $templateEngine->getEngine()->setPlugins($engine->getPlugins());
+                }
+
+                $buffer = $templateEngine->compile($newContext, $newTmpl);
+                $templateEngine->getEngine()->invokePluginsWithResourcePath($resource, $buffer, $newContext, $newTmpl);
+
+                $newNode = new \DOMText();
+                $newNode->data = $buffer;
+
+                $child->removeAttribute(ApiAttrs::RESOURCE);
+                //$node->insertBefore($newNode, $child->firstChild);
+                $child->appendChild($newNode);
             }
-            if ($engine->hasPlugins()) {
-                $templateEngine->getEngine()->setPlugins($engine->getPlugins());
-            }
-
-            $buffer = $templateEngine->compile($newContext, $newTmpl);
-            $templateEngine->getEngine()->invokePluginsWithResourcePath($resource, $buffer, $newContext, $newTmpl);
-
-            $newNode = new \DOMText();
-            $newNode->data = $buffer;
-
-            $child->removeAttribute(ApiAttrs::RESOURCE);
-            //$node->insertBefore($newNode, $child->firstChild);
-            $child->appendChild($newNode);
-        }
-        else if (trim($resource, '/') === ApiAttrs::PARSYS)
-        {
-            if ($context->has('parsys')) {
-                $parsys = $context->get('parsys');
-                if (is_array($parsys) && isset($parsys[$path])) {
-                    $contentBuffer = array();
-                    foreach ($parsys[$path] as $par) {
-                        $absRootPath = $engine->getResourceRoot() . trim($par, '/');
-                        $last = pathinfo($absRootPath, PATHINFO_BASENAME);
-                        $html = $absRootPath . DS . $last . '.' . Util\FileExtension::HTML;
-                        $data = $absRootPath . DS . 'data' . DS . $selector . '.' . Util\FileExtension::JSON;
-                        if (file_exists($html) && file_exists($data)) {
-                            $newContext = new Context($data);
-                            $newTmpl = new Tmpl($html);
-                            $newTmpl->setPartialsPath($absRootPath);
-                            $templateEngine = new GX2CMS();
-                            if ($engine->hasResourceRoot()) {
-                                $templateEngine->getEngine()->setResourceRoot($engine->getResourceRoot());
+            else if (trim($resource, '/') === ApiAttrs::PARSYS)
+            {
+                if ($context->has('parsys')) {
+                    $parsys = $context->get('parsys');
+                    if (is_array($parsys) && isset($parsys[$path])) {
+                        $contentBuffer = array();
+                        foreach ($parsys[$path] as $par) {
+                            $absRootPath = $engine->getResourceRoot() . trim($par, '/');
+                            $last = pathinfo($absRootPath, PATHINFO_BASENAME);
+                            $html = $absRootPath . DS . $last . '.' . Util\FileExtension::HTML;
+                            $data = $absRootPath . DS . 'data' . DS . $selector . '.' . Util\FileExtension::JSON;
+                            if (file_exists($html) && file_exists($data)) {
+                                $newContext = new Context($data);
+                                $newTmpl = new Tmpl($html);
+                                $newTmpl->setPartialsPath($absRootPath);
+                                $templateEngine = new GX2CMS();
+                                if ($engine->hasResourceRoot()) {
+                                    $templateEngine->getEngine()->setResourceRoot($engine->getResourceRoot());
+                                }
+                                if ($engine->hasPlugins()) {
+                                    $templateEngine->getEngine()->setPlugins($engine->getPlugins());
+                                }
+                                $buffer = $templateEngine->compile($newContext, $newTmpl);
+                                $templateEngine->getEngine()->invokePluginsWithResourcePath($resource, $buffer, $newContext, $newTmpl);
+                                $contentBuffer[] = $buffer;
+                            } else {
+                                Response::renderPlaintext('Your resource ' . $par . ' loaded by the parsys does not exist');
                             }
-                            if ($engine->hasPlugins()) {
-                                $templateEngine->getEngine()->setPlugins($engine->getPlugins());
-                            }
-                            $buffer = $templateEngine->compile($newContext, $newTmpl);
-                            $templateEngine->getEngine()->invokePluginsWithResourcePath($resource, $buffer, $newContext, $newTmpl);
-                            $contentBuffer[] = $buffer;
-                        } else {
-                            Response::renderPlaintext('Your resource ' . $par . ' loaded by the parsys does not exist');
                         }
-                    }
 
-                    $newNode = new \DOMText();
-                    $newNode->data = implode('', $contentBuffer);
-                    $child->removeAttribute(ApiAttrs::RESOURCE);
-                    $child->insertBefore($newNode, $child->firstChild);
+                        $newNode = new \DOMText();
+                        $newNode->data = implode('', $contentBuffer);
+                        $child->removeAttribute(ApiAttrs::RESOURCE);
+                        $child->insertBefore($newNode, $child->firstChild);
+                    }
+                    else {
+                        Response::renderPlaintext('Your parsys ('.$resource.') is empty');
+                    }
                 }
                 else {
                     Response::renderPlaintext('Your parsys ('.$resource.') is empty');
                 }
             }
-            else {
-                Response::renderPlaintext('Your parsys ('.$resource.') is empty');
+            else if (!$hasHtml) {
+                Response::renderPlaintext('Bad request: resource ' . str_replace($engine->getResourceRoot(), '', $html) . ' does not exist');
             }
-        }
-        else if (!$hasHtml) {
-            Response::renderPlaintext('Bad request: resource ' . str_replace($engine->getResourceRoot(), '', $html) . ' does not exist');
-        }
-        else if (!$hasData) {
-            Response::renderPlaintext('Bad request: resource data ' . str_replace($engine->getResourceRoot(), '', $data) . ' does not exist');
+            else if (!$hasData) {
+                Response::renderPlaintext('Bad request: resource data ' . str_replace($engine->getResourceRoot(), '', $data) . ' does not exist');
+            }
         }
         return true;
     }
 
-    private function containedInProperties(Context &$context, array $attrResource): bool {
+    private function resourceExistsInProperties(Context &$context, array $attrResource): bool {
         $properties = $context->get('properties');
         if (isset($properties[$attrResource['path']]) && isset($properties[$attrResource['path']]['resourceType']) &&
             $properties[$attrResource['path']]['resourceType'] === $attrResource['resource']) {
@@ -144,7 +149,7 @@ class CompileResource implements CompileInterface
 
     private function loadResourcesFromProperties(array $attrResource, \DOMElement &$child, Context &$context, Tmpl &$tmpl, InterfaceEzpzTmpl &$engine) {
         $last = pathinfo($attrResource['resource'], PATHINFO_FILENAME);
-        $dir = rtrim($engine->getResourceRoot(), '/') . $attrResource['resource'];
+        $dir = rtrim($engine->getResourceRoot(), '/') . '/' . ltrim($attrResource['resource'], '/');
         $templateFile = $dir . '/' . $last . '.html';
         if (file_exists($templateFile)) {
             $properties = $context->get('properties');

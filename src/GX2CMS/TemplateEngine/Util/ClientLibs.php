@@ -6,6 +6,71 @@ final class ClientLibs
 {
     private static $data = array('css'=>array(), 'js'=>array(), 'style'=>array(), 'script'=>array());
     private static $hashedData = array('css'=>array(), 'js'=>array());
+    private static $dataByCategory = array();
+
+    public static function getAggregatedClientlibByCategory(string $category=null, string $type=null): array {
+        if ($category && isset(self::$dataByCategory[$category])) {
+            if ($type && isset(self::$dataByCategory[$category][$type])) {
+                return self::$dataByCategory[$category][$type];
+            }
+            return self::$dataByCategory[$category];
+        }
+        return self::$dataByCategory;
+    }
+
+    /**
+     * Being invoked by 2 places (ONLY):
+     * 1) GX2CMS\TemplateEngine\DefaultTemplate\CompileResource
+     * 2) WC\CMS\Repository\AbstractUcr;
+     *
+     * @param string $resource
+     */
+    public static function searchClientlibByResource(string $resource) {
+        $glob = glob($resource . '/*');
+        foreach ($glob as $item) {
+            if (is_dir($item)) {
+                self::searchClientlibByResource($item);
+            }
+            else if (pathinfo($item, PATHINFO_BASENAME) === 'clientlib.json') {
+                $data = json_decode(file_get_contents($item), true);
+                if (sizeof($data) && isset($data['categories']) && is_array($data['categories']) && sizeof($data['categories'])) {
+                    $dir = dirname($item);
+                    if (file_exists($dir.'/css.txt')) {
+                        foreach ($data['categories'] as $category) {
+                            self::aggregateByCategory($category, 'css', $dir);
+                        }
+                    }
+                    else if (file_exists($dir.'/style')) {
+                        foreach ($data['categories'] as $category) {
+                            self::aggregateByCategory($category, 'css', $dir);
+                        }
+                    }
+                    if (file_exists($dir.'/js.txt')) {
+                        foreach ($data['categories'] as $category) {
+                            self::aggregateByCategory($category, 'js', $dir);
+                        }
+                    }
+                    else if (file_exists($dir.'/script')) {
+                        foreach ($data['categories'] as $category) {
+                            self::aggregateByCategory($category, 'js', $dir);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private static function aggregateByCategory(string $category, string $type, string $content) {
+        if (!isset(self::$dataByCategory[$category])) {
+            self::$dataByCategory[$category] = array();
+        }
+        if (!isset(self::$dataByCategory[$category][$type])) {
+            self::$dataByCategory[$category][$type] = array();
+        }
+        if (!isset(self::$dataByCategory[$category][$type][md5($content)])) {
+            self::$dataByCategory[$category][$type][md5($content)] = $content;
+        }
+    }
 
     public static function aggregateCSS(string $data) {
         if (!self::dataExists($data, 'css')) {

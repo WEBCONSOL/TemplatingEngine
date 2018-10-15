@@ -18,6 +18,7 @@ class ApiAttrs
     const INCLUDE = "data-".GX2CMS_PLATFORM_TAG."-include";
     const RESOURCE = "data-".GX2CMS_PLATFORM_TAG."-resource";
     const USE = "data-".GX2CMS_PLATFORM_TAG."-use";
+    const CALL = "data-".GX2CMS_PLATFORM_TAG."-call";
 
     const ELEMENT = "data-".GX2CMS_PLATFORM_TAG."-element";
     const ATTRIBUTE = "data-".GX2CMS_PLATFORM_TAG."-attribute";
@@ -28,7 +29,8 @@ class ApiAttrs
         self::INCLUDE => "Partial",
         self::RESOURCE => "Resource",
         self::ATTRIBUTE => "Attribute",
-        self::USE => "Use"
+        self::USE => "Use",
+        self::CALL => "Call"
     );
 
     const API_LATELOADER_SERVICES = array(

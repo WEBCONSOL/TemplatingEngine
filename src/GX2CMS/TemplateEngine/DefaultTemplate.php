@@ -420,5 +420,5 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
 
     public function getRequest(): RequestInterface { return $this->request; }
 
-    public function hasRequest(): bool {return $this->resourceRoot !== null;}
+    public function hasRequest(): bool {return $this->request !== null;}
 }

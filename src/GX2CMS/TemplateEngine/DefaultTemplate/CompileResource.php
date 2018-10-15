@@ -25,8 +25,15 @@ class CompileResource implements CompileInterface
     {
         $attrValue = $child->getAttribute(ApiAttrs::RESOURCE);
         $attrResource = $this->parseDataEzpzResource($attrValue);
+
+        if ($this->containedInProperties($context, $attrResource)) {
+            $this->loadResourcesFromProperties($attrResource, $child, $context, $tmpl, $engine);
+            return true;
+        }
+
         $path = $attrResource['path'];
         $resource = $attrResource['resource'];
+
         if (!$path && !$resource && $attrValue) {$resource = $attrValue;}
         $selector = $child->hasAttribute(ApiAttrs::DATA_SELECTOR) ? $child->getAttribute(ApiAttrs::DATA_SELECTOR) : 'properties';
 
@@ -124,6 +131,52 @@ class CompileResource implements CompileInterface
             Response::renderPlaintext('Bad request: resource data ' . str_replace($engine->getResourceRoot(), '', $data) . ' does not exist');
         }
         return true;
+    }
+
+    private function containedInProperties(Context &$context, array $attrResource): bool {
+        $properties = $context->get('properties');
+        if (isset($properties[$attrResource['path']]) && isset($properties[$attrResource['path']]['resourceType']) &&
+            $properties[$attrResource['path']]['resourceType'] === $attrResource['resource']) {
+            return true;
+        }
+        return false;
+    }
+
+    private function loadResourcesFromProperties(array $attrResource, \DOMElement &$child, Context &$context, Tmpl &$tmpl, InterfaceEzpzTmpl &$engine) {
+        $last = pathinfo($attrResource['resource'], PATHINFO_FILENAME);
+        $dir = rtrim($engine->getResourceRoot(), '/') . $attrResource['resource'];
+        $templateFile = $dir . '/' . $last . '.html';
+        if (file_exists($templateFile)) {
+            $properties = $context->get('properties');
+            $data = isset($properties[$attrResource['path']]['data']) ? $properties[$attrResource['path']]['data'] : array();
+            if (sizeof($data)) {
+                $newContext = new Context($data);
+            }
+            else {
+                $newContext = $context;
+            }
+            $newTmpl = new Tmpl($templateFile, $dir);
+            if ($engine->hasDatabaseDriver() && $engine->hasRequest()) {
+                $newTmplEngine = new GX2CMS(null, $engine->getDatabaseDriver(), $engine->getRequest());
+            }
+            else if ($engine->hasDatabaseDriver()) {
+                $newTmplEngine = new GX2CMS(null, $engine->getDatabaseDriver());
+            }
+            else if ($engine->hasRequest()) {
+                $newTmplEngine = new GX2CMS(null, null, $engine->getRequest());
+            }
+            else {
+                $newTmplEngine = new GX2CMS();
+            }
+            $newTmplEngine->getEngine()->setResourceRoot($engine->getResourceRoot());
+
+            $buffer = $newTmplEngine->compile($newContext, $newTmpl);
+            $newTmplEngine->getEngine()->invokePluginsWithResourcePath($attrResource['resource'], $buffer, $newContext, $newTmpl);
+            $newNode = new \DOMText();
+            $newNode->data = $buffer;
+            $child->removeAttribute(ApiAttrs::RESOURCE);
+            $child->appendChild($newNode);
+        }
     }
 
     /**

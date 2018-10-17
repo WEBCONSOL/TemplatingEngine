@@ -22,3 +22,9 @@ define('GX2CMS_BRACKET_OPEN', 'GX2CMS_BRACKET_OPEN');
 define('GX2CMS_BRACKET_CLOSE', 'GX2CMS_BRACKET_CLOSE');
 define('GX2CMS_COMMENT_START', '${!--//');
 define('GX2CMS_COMMENT_END', '//--}');
+
+if (!defined('GX2CMS_CONTAINER_PARAGRAPH_SYSTEM')) {define('GX2CMS_CONTAINER_PARAGRAPH_SYSTEM', '/extensions/components/wcm/container');}
+if (!defined('KEY_HTTP_REQUEST')) {define('KEY_HTTP_REQUEST', 'httpRequest');}
+if (!defined('KEY_CURRENT_PAGE')) {define('KEY_CURRENT_PAGE', 'currentPage');}
+if (!defined("WC_SESSION_LOGIN_KEY")) {define("WC_SESSION_LOGIN_KEY", "wc_login_uid");}
+if (!defined("WC_SESSION_DATA_KEY")) {define("WC_SESSION_DATA_KEY", "session_user_data");}

@@ -23,8 +23,9 @@ use WC\Utilities\PregUtil;
 
 final class DefaultTemplate implements InterfaceEzpzTmpl
 {
-    private $handlebarsHelperPackage = '\GX2CMS\TemplateEngine\Handlebars\Helper';
     private static $engine = null;
+    private static $currentPage = null;
+    private $handlebarsHelperPackage = '\GX2CMS\TemplateEngine\Handlebars\Helper';
     private $tmplPackagePfx = null;
     private $hasElementApiAttr = false;
     private $plugins = array();
@@ -56,8 +57,7 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
      */
     public function compile(Context $context, Tmpl $tmpl): string
     {
-        $this->mergeHttpRequestData($context);
-        $this->mergeSessionData($context);
+        $this->mergeGlobalContextVariables($context);
         $tmplContent = $tmpl->getContent();
         $this->techtag2gx2cmstag($tmplContent);
         $this->invokePluginsToProcessContext($context, $tmpl);
@@ -388,27 +388,26 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
      */
     public function hasPlugins(): bool {return sizeof($this->plugins) > 0;}
 
-    public function mergeHttpRequestData(Context &$context) {
-        $key = 'httpRequest';
-        $data = array();
-        if (strtoupper($_SERVER['REQUEST_METHOD']) === 'GET') {
-            $data = $_GET;
+    public function mergeGlobalContextVariables(Context &$context) {
+        if (!$context->has(KEY_HTTP_REQUEST)) {
+            $data = array();
+            if (strtoupper($_SERVER['REQUEST_METHOD']) === 'GET') {$data = $_GET;}
+            else if (strtoupper($_SERVER['REQUEST_METHOD']) === 'POST') {$data = $_POST;}
+            if (sizeof($data)) {$context->set(KEY_HTTP_REQUEST, $data);}
         }
-        else if (strtoupper($_SERVER['REQUEST_METHOD']) === 'POST') {
-            $data = $_POST;
+
+        if (!$context->has(WC_SESSION_DATA_KEY)) {
+            $data = isset($_SESSION) && is_array($_SESSION) ? $_SESSION : array();
+            if (sizeof($data)) {$context->set(WC_SESSION_DATA_KEY, $data);}
         }
-        if (!$context->has($key) && sizeof($data)) {
-            $context->set($key, $data);
+
+        if (!$context->has(KEY_CURRENT_PAGE) && sizeof(self::$currentPage)) {
+            $context->set(KEY_CURRENT_PAGE, self::$currentPage);
         }
     }
 
-    public function mergeSessionData(Context &$context) {
-        $key = 'session_user_data';
-        $data = isset($_SESSION) && is_array($_SESSION) ? $_SESSION : array();
-        if (!$context->has($key) && sizeof($data)) {
-            $context->set($key, $data);
-        }
-    }
+    // this is helpful for storing current page data as global variable within the GX2CMS context
+    public static function setCurrentPage(array $obj) {self::$currentPage = $obj;}
 
     public function setDatabaseDriver(\Database\Driver $driver) { $this->databaseDriver = $driver; }
 

@@ -30,7 +30,6 @@ class CompileResource implements CompileInterface
         $attrResource = $this->parseDataEzpzResource($attrValue);
 
         if ($attrResource['resource'] === GX2CMS_CONTAINER_PARAGRAPH_SYSTEM) {
-            Util\ClientLibs::searchClientlibByResource(self::resourceAbsPath($engine, $attrResource['resource']));
             $buffer = array();
             $this->loadContainerParagraphSystem($attrResource, $child, $context, $tmpl, $engine, $buffer);
             $newNode = new \DOMText();
@@ -39,7 +38,6 @@ class CompileResource implements CompileInterface
             $child->appendChild($newNode);
         }
         else if ($this->resourceExistsInProperties($context, $attrResource)) {
-            Util\ClientLibs::searchClientlibByResource(self::resourceAbsPath($engine, $attrResource['resource']));
             $this->loadResourcesFromProperties($attrResource, $child, $context, $tmpl, $engine);
         }
         else {
@@ -69,7 +67,6 @@ class CompileResource implements CompileInterface
                 else {
                     $data = json_decode(file_get_contents($data), true);
                 }
-                Util\ClientLibs::searchClientlibByResource($resourceAbsPath);
                 $newNode = new \DOMText();
                 $newNode->data = self::loadResource($resource, $data, $engine);
                 $child->removeAttribute(ApiAttrs::RESOURCE);
@@ -87,7 +84,6 @@ class CompileResource implements CompileInterface
                             $html = $resourceAbsPath . DS . $last . '.' . Util\FileExtension::HTML;
                             $data = $resourceAbsPath . DS . 'data' . DS . $selector . '.' . Util\FileExtension::JSON;
                             if (file_exists($html)) {
-                                Util\ClientLibs::searchClientlibByResource($resourceAbsPath);
                                 $data = file_exists($data) ? json_decode(file_get_contents($data), true) : array();
                                 $contentBuffer[] = self::loadResource($par, $data, $engine);
                             } else {
@@ -118,11 +114,12 @@ class CompileResource implements CompileInterface
     }
 
     public static function loadResource(string $resource, array $data, InterfaceEzpzTmpl &$engine): string {
+        $buffer = '';
         $resourceAbsPath = self::resourceAbsPath($engine, $resource);
         $last = pathinfo($resource, PATHINFO_FILENAME);
         $tmplFile = $resourceAbsPath.'/'.$last.'.html';
-        $buffer = '';
         if (file_exists($tmplFile)) {
+            Util\ClientLibs::searchClientlibByResource($resourceAbsPath);
             $tmpl = new Tmpl($tmplFile, $resourceAbsPath);
             $tmpl->setPartialsPath($resourceAbsPath);
             if ($engine->hasDatabaseDriver() && $engine->hasRequest()) {
@@ -137,7 +134,6 @@ class CompileResource implements CompileInterface
             else {
                 $tmplEngine = new GX2CMS();
             }
-            self::formatData($data);
             $context = new Context($data);
             $tmplEngine->getEngine()->setResourceRoot($engine->getResourceRoot());
             if ($engine->hasResourceRoot()) {
@@ -149,7 +145,7 @@ class CompileResource implements CompileInterface
 
             $metadata = $resourceAbsPath . '/'.$last.'.json';
             if (file_exists($metadata)) {
-                $metadata = new ListModel(json_decode(file_get_contents($resourceAbsPath . '/'.$last.'.json'), true));
+                $metadata = new ListModel(json_decode(file_get_contents($metadata), true));
                 if ($metadata->has('authoringDialog')) {
                     $authoringDialog = new ListModel($metadata->get('authoringDialog'));
                     $config = array(
@@ -203,12 +199,11 @@ class CompileResource implements CompileInterface
         $properties = null;
         if ($context->has('properties')) {$properties = $context->get('properties');}
         else if ($context->has('data')) {$properties = $context->get('data');}
-        if ($properties && isset($properties[$attrResource['path']])) {
+        if (is_array($properties) && isset($properties[$attrResource['path']])) {
             $properties = $properties[$attrResource['path']];
             if (isset($properties['properties'])) {$data = $properties['properties'];}
             else if (isset($properties['data'])) {$data = $properties['data'];}
             else {$data = array();}
-
             self::formatData($data);
             $contextData = $context->getAsArray();
             $contextData['properties'] = isset($data['properties']) ? $data['properties'] : $data;
@@ -216,6 +211,12 @@ class CompileResource implements CompileInterface
             $newNode->data = self::loadResource($attrResource['resource'], $contextData, $engine);
             $child->removeAttribute(ApiAttrs::RESOURCE);
             $child->appendChild($newNode);
+        }
+        else if (is_string($properties)) {
+            $tmpl = new Tmpl($properties);
+            $context = new Context(array());
+            $tmplEngine = new GX2CMS();
+            $buffer[] = $engine->compile($context, $tmpl);
         }
     }
 
@@ -226,7 +227,7 @@ class CompileResource implements CompileInterface
         $properties = null;
         if ($context->has('properties')) {$properties = $context->get('properties');}
         else if ($context->has('data')) {$properties = $context->get('data');}
-        if ($properties && isset($properties[$attrResource['path']])) {
+        if (is_array($properties) && isset($properties[$attrResource['path']])) {
             $properties = $properties[$attrResource['path']];
             if (isset($properties['properties'])) {$data = $properties['properties'];}
             else if (isset($properties['data'])) {$data = $properties['data'];}
@@ -240,6 +241,12 @@ class CompileResource implements CompileInterface
                     $buffer[] = self::loadResource($nodeProperty['resourceType'], $contextData, $engine);
                 }
             }
+        }
+        else if (is_string($properties)) {
+            $tmpl = new Tmpl($properties);
+            $context = new Context(array());
+            $tmplEngine = new GX2CMS();
+            $buffer[] = $engine->compile($context, $tmpl);
         }
     }
 

@@ -9,6 +9,7 @@ use GX2CMS\TemplateEngine\InterfaceEzpzTmpl;
 use GX2CMS\TemplateEngine\Model\Context;
 use GX2CMS\TemplateEngine\Model\Tmpl;
 use GX2CMS\TemplateEngine\Util\StringUtil;
+use WC\Models\ListModel;
 use WC\Utilities\CustomResponse;
 
 class CompileResource implements CompileInterface
@@ -145,7 +146,33 @@ class CompileResource implements CompileInterface
             if ($engine->hasPlugins()) {
                 $tmplEngine->getEngine()->setPlugins($engine->getPlugins());
             }
-            $buffer = $tmplEngine->compile($context, $tmpl);
+
+            $metadata = $resourceAbsPath . '/'.$last.'.json';
+            if (file_exists($metadata)) {
+                $metadata = new ListModel(json_decode(file_get_contents($resourceAbsPath . '/'.$last.'.json'), true));
+                if ($metadata->has('authoringDialog')) {
+                    $authoringDialog = new ListModel($metadata->get('authoringDialog'));
+                    $config = array(
+                        'metadata' => $metadata->getAsArray(),
+                        'path' => $resource
+                    );
+                    $authoring = array();
+                    if ($authoringDialog->has('type') && $authoringDialog->is('type', 'table')) {
+                        $authoring[] = '<div data-authoring-type="table" data-config="'.base64_encode(json_encode($config)).'">';
+                        $authoring[] = $tmplEngine->compile($context, $tmpl);
+                        $authoring[] = '</'.'div>';
+                    }
+                    else {
+                        $authoring[] = '<!--authoringtool_start'.json_encode($config).'-->';
+                        $authoring[] = $tmplEngine->compile($context, $tmpl);
+                        $authoring[] = '<!--authoringtool_end-->';
+                    }
+                    $buffer = implode('', $authoring);
+                }
+            }
+            if (!$buffer) {
+                $buffer = $tmplEngine->compile($context, $tmpl);
+            }
             $tmplEngine->getEngine()->invokePluginsWithResourcePath($resource, $buffer, $context, $tmpl);
         }
         else {

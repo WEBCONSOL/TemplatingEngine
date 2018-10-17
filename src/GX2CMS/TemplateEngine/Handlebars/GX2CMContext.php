@@ -23,13 +23,8 @@ class GX2CMContext extends Context
     {
         $val = $this->handleContext($variableName);
         if ($val === null) {
-            // variable is found
-            $val = parent::get($variableName, $strict);
-            if ($val) {return $val;}
-            // empty
-            if ($variableName === "''") {return "";}
             // logical statement (i.e. if else or unary statement)
-            else if ($this->isConditionalStatement($variableName)) {
+            if ($this->isConditionalStatement($variableName)) {
                 $variableName = str_replace(Constants::REPLACES, Constants::PATTERNS, $variableName);
                 $token = CompilerUtil::conditionalExpressionTokenizer($variableName);
                 if (isset($token['vars']) && is_array($token['vars']) && isset($token['statement'])) {
@@ -55,8 +50,16 @@ class GX2CMContext extends Context
                     }
                 }
             }
+
+            // variable is found
+            $val = parent::get($variableName, $strict);
+            if ($val) {return $val;}
+
+            // empty
+            if ($variableName === "''") {return "";}
+
             // variable within the loop context
-            else if ($variableName === 'item') {
+            if ($variableName === 'item') {
                 $variableName = '@'.$variableName;
                 $val = parent::get($variableName, $strict);
                 if ($val) {return $val;}
@@ -68,28 +71,27 @@ class GX2CMContext extends Context
                 $val = parent::get($variableName, $strict);
                 if ($val) {return $val;}
             }
-            else if (StringUtil::startsWith($variableName, 'item.')) {
+            if (StringUtil::startsWith($variableName, 'item.')) {
                 $variableName = str_replace('item.', 'this.', $variableName);
                 $val = parent::get($variableName, $strict);
                 if ($val) {return $val;}
             }
-            else if ($variableName instanceof StringWrapper) {
+            if ($variableName instanceof StringWrapper) {
                 $ret = (string)$variableName;
                 if ($ret == "''") {$ret = "";}
                 return $ret;
             }
+
             // constant
-            else if ($this->getConstant($variableName)) {return $this->getConstant($variableName);}
-            else {
-                $htmlBlock = $this->htmlBlock($variableName);
-                if ($htmlBlock) {return $htmlBlock;}
-                else {
-                    $vars = $this->_splitVariableName($variableName);
-                    $val = $this->_findVariableInContext($vars, $this->customContext);
-                    if ($val !== null) {return $val;}
-                    return parent::get($variableName, $strict);
-                }
-            }
+            if ($this->getConstant($variableName)) {return $this->getConstant($variableName);}
+
+            $htmlBlock = $this->htmlBlock($variableName);
+            if ($htmlBlock) {return $htmlBlock;}
+
+            $vars = $this->_splitVariableName($variableName);
+            $val = $this->_findVariableInContext($vars, $this->customContext);
+            if ($val !== null) {return $val;}
+            return parent::get($variableName, $strict);
         }
         else {
             return is_array($val)||is_object($val)?json_encode($val):$val;

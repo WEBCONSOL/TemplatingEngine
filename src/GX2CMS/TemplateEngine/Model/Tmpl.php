@@ -30,7 +30,7 @@ class Tmpl
 
     public function reset(string $var)
     {
-        $hasDS = sizeof(explode('/', $var)) || sizeof(explode('\\', $var));
+        $hasDS = (sizeof(explode('/', $var)) || sizeof(explode('\\', $var))) && (is_dir($var)||is_file($var));
 
         if ($hasDS && pathinfo($var, PATHINFO_EXTENSION) === 'html' && file_exists($var))
         {

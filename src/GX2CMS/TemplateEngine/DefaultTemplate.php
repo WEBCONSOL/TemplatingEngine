@@ -20,6 +20,7 @@ use GX2CMS\TemplateEngine\Handlebars\GX2CMContext;
 use Psr\Http\Message\RequestInterface;
 use WC\Utilities\PregUtil;
 
+if (!defined('GX2CMS_PLATFORM_TAG')) {include __DIR__ . '/constants.php';}
 
 final class DefaultTemplate implements InterfaceEzpzTmpl
 {

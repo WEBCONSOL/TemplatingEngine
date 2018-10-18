@@ -5,10 +5,28 @@ namespace GX2CMS\TemplateEngine;
 use GX2CMS\TemplateEngine\Model\Context;
 use GX2CMS\TemplateEngine\Model\Tmpl;
 use Psr\Http\Message\RequestInterface;
+use WC\Utilities\StringUtil;
+
+if (!defined('GX2CMS_PLATFORM_TAG')) {include __DIR__ . '/constants.php';}
 
 final class GX2CMS
 {
     private $engine;
+
+    public static function render(string $soruce, array $context, string $root="", string $resourceAbsPath="",
+                                  \Database\Driver $driver=null,
+                                  RequestInterface $request=null, bool $isPage=false)
+    {
+        if ($resourceAbsPath) {
+            Util\ClientLibs::searchClientlibByResource($resourceAbsPath);
+        }
+        $tmpl = new Tmpl($soruce, $resourceAbsPath);
+        $tmpl->loadWholeDOC($isPage);
+        $engine = new DefaultTemplate($driver, $request);
+        $engine->setResourceRoot($root);
+        return $engine->compile(new Context($context), $tmpl);
+    }
+
 
     /**
      * Ezpz constructor.
@@ -17,10 +35,6 @@ final class GX2CMS
      */
     public function __construct(InterfaceEzpzTmpl $engine=null, \Database\Driver $driver=null, RequestInterface $request=null)
     {
-        if (!defined('GX2CMS_PLATFORM_TAG')) {
-            include __DIR__ . '/constants.php';
-        }
-
         if ($engine === null) {
             $this->loadEngine(new DefaultTemplate($driver, $request));
         }

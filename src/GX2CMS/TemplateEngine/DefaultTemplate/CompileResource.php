@@ -11,6 +11,7 @@ use GX2CMS\TemplateEngine\Model\Tmpl;
 use GX2CMS\TemplateEngine\Util\StringUtil;
 use WC\Models\ListModel;
 use WC\Utilities\CustomResponse;
+use WC\Utilities\PregUtil;
 
 class CompileResource implements CompileInterface
 {
@@ -28,27 +29,28 @@ class CompileResource implements CompileInterface
         $this->reformatContext($context);
         $attrValue = $child->getAttribute(ApiAttrs::RESOURCE);
         $attrResource = $this->parseDataEzpzResource($attrValue);
+        $path = $attrResource['path'];
+        $resource = $attrResource['resource'];
 
-        if ($attrResource['resource'] === GX2CMS_CONTAINER_PARAGRAPH_SYSTEM) {
-            $buffer = array();
-            $this->loadContainerParagraphSystem($attrResource, $child, $context, $tmpl, $engine, $buffer);
+        if ($resource === GX2CMS_CONTAINER_PARAGRAPH_SYSTEM) {
             $newNode = new \DOMText();
-            $newNode->data = self::loadResource($attrResource['resource'], array('renderedResource' => implode('', $buffer)), $engine);
+            $newNode->data = Util\CompilerUtil::loadContainerParagraphSystem($path, $resource, $context,$engine);
             $child->removeAttribute(ApiAttrs::RESOURCE);
             $child->appendChild($newNode);
         }
-        else if ($this->resourceExistsInProperties($context, $attrResource)) {
-            $this->loadResourcesFromProperties($attrResource, $child, $context, $tmpl, $engine);
+        else if ($this->resourceExistsInProperties($path, $resource, $context)) {
+            $newNode = new \DOMText();
+            $newNode->data = $this->loadResourcesFromProperties($path, $resource, $child, $context, $tmpl, $engine);
+            $child->removeAttribute(ApiAttrs::RESOURCE);
+            $child->appendChild($newNode);
         }
         else {
-            $path = $attrResource['path'];
-            $resource = $attrResource['resource'];
             if (!$path && !$resource && $attrValue) {$resource = $attrValue;}
             $selector = $child->hasAttribute(ApiAttrs::DATA_SELECTOR) ? $child->getAttribute(ApiAttrs::DATA_SELECTOR) : 'properties';
             if (StringUtil::startsWith($resource, $engine->getResourceRoot())) {
                 $resource = str_replace(rtrim($engine->getResourceRoot(), '/'), '', $resource);
             }
-            $resourceAbsPath = self::resourceAbsPath($engine, $resource);
+            $resourceAbsPath = Util\CompilerUtil::resourceAbsPath($engine, $resource);
 
             $last = pathinfo($resourceAbsPath, PATHINFO_BASENAME);
             $html = $resourceAbsPath . DS . $last . '.' . Util\FileExtension::HTML;
@@ -68,7 +70,7 @@ class CompileResource implements CompileInterface
                     $data = json_decode(file_get_contents($data), true);
                 }
                 $newNode = new \DOMText();
-                $newNode->data = self::loadResource($resource, $data, $engine);
+                $newNode->data = Util\CompilerUtil::loadResource($resource, $data, $engine);
                 $child->removeAttribute(ApiAttrs::RESOURCE);
                 $child->appendChild($newNode);
             }
@@ -85,7 +87,7 @@ class CompileResource implements CompileInterface
                             $data = $resourceAbsPath . DS . 'data' . DS . $selector . '.' . Util\FileExtension::JSON;
                             if (file_exists($html)) {
                                 $data = file_exists($data) ? json_decode(file_get_contents($data), true) : array();
-                                $contentBuffer[] = self::loadResource($par, $data, $engine);
+                                $contentBuffer[] = Util\CompilerUtil::loadResource($par, $data, $engine);
                             } else {
                                 Response::renderPlaintext('Your resource ' . $par . ' loaded by the parsys does not exist');
                             }
@@ -113,71 +115,7 @@ class CompileResource implements CompileInterface
         return true;
     }
 
-    public static function loadResource(string $resource, array $data, InterfaceEzpzTmpl &$engine): string {
-        $buffer = '';
-        $resourceAbsPath = self::resourceAbsPath($engine, $resource);
-        $last = pathinfo($resource, PATHINFO_FILENAME);
-        $tmplFile = $resourceAbsPath.'/'.$last.'.html';
-        if (file_exists($tmplFile)) {
-            Util\ClientLibs::searchClientlibByResource($resourceAbsPath);
-            $tmpl = new Tmpl($tmplFile, $resourceAbsPath);
-            $tmpl->setPartialsPath($resourceAbsPath);
-            if ($engine->hasDatabaseDriver() && $engine->hasRequest()) {
-                $tmplEngine = new GX2CMS(null, $engine->getDatabaseDriver(), $engine->getRequest());
-            }
-            else if ($engine->hasDatabaseDriver()) {
-                $tmplEngine = new GX2CMS(null, $engine->getDatabaseDriver());
-            }
-            else if ($engine->hasRequest()) {
-                $tmplEngine = new GX2CMS(null, null, $engine->getRequest());
-            }
-            else {
-                $tmplEngine = new GX2CMS();
-            }
-            $context = new Context($data);
-            $tmplEngine->getEngine()->setResourceRoot($engine->getResourceRoot());
-            if ($engine->hasResourceRoot()) {
-                $tmplEngine->getEngine()->setResourceRoot($engine->getResourceRoot());
-            }
-            if ($engine->hasPlugins()) {
-                $tmplEngine->getEngine()->setPlugins($engine->getPlugins());
-            }
-
-            $metadata = $resourceAbsPath . '/'.$last.'.json';
-            if (file_exists($metadata)) {
-                $metadata = new ListModel(json_decode(file_get_contents($metadata), true));
-                if ($metadata->has('authoringDialog')) {
-                    $authoringDialog = new ListModel($metadata->get('authoringDialog'));
-                    $config = array(
-                        'metadata' => $metadata->getAsArray(),
-                        'path' => $resource
-                    );
-                    $authoring = array();
-                    if ($authoringDialog->has('type') && $authoringDialog->is('type', 'table')) {
-                        $authoring[] = '<div data-authoring-type="table" data-config="'.base64_encode(json_encode($config)).'">';
-                        $authoring[] = $tmplEngine->compile($context, $tmpl);
-                        $authoring[] = '</'.'div>';
-                    }
-                    else {
-                        $authoring[] = '<!--authoringtool_start'.json_encode($config).'-->';
-                        $authoring[] = $tmplEngine->compile($context, $tmpl);
-                        $authoring[] = '<!--authoringtool_end-->';
-                    }
-                    $buffer = implode('', $authoring);
-                }
-            }
-            if (!$buffer) {
-                $buffer = $tmplEngine->compile($context, $tmpl);
-            }
-            $tmplEngine->getEngine()->invokePluginsWithResourcePath($resource, $buffer, $context, $tmpl);
-        }
-        else {
-            CustomResponse::render(500, "Template file: $tmplFile does not exist");
-        }
-        return $buffer;
-    }
-
-    private function resourceExistsInProperties(Context &$context, array $attrResource): bool {
+    private function resourceExistsInProperties(string $path, string $resource, Context &$context): bool {
         $properties = null;
         if ($context->has('properties')) {
             $properties = $context->get('properties');
@@ -185,69 +123,34 @@ class CompileResource implements CompileInterface
         else if ($context->has('data')) {
             $properties = $context->get('data');
         }
-        if (is_array($properties) && isset($properties[$attrResource['path']]) &&
-            isset($properties[$attrResource['path']]['resourceType']) &&
-            $properties[$attrResource['path']]['resourceType'] === $attrResource['resource']) {
+        if (is_array($properties) && isset($properties[$path]) &&
+            isset($properties[$path]['resourceType']) &&
+            $properties[$path]['resourceType'] === $resource) {
             return true;
         }
         return false;
     }
 
-    private function loadResourcesFromProperties(array $attrResource, \DOMElement &$child, Context &$context, Tmpl &$tmpl, InterfaceEzpzTmpl &$engine) {
-        $last = pathinfo($attrResource['resource'], PATHINFO_FILENAME);
-        $resourceAbsPath = rtrim($engine->getResourceRoot(), '/') . '/' . trim($attrResource['resource'], '/');
+    private function loadResourcesFromProperties(string $path, string $resource, \DOMElement &$child, Context &$context, Tmpl &$tmpl, InterfaceEzpzTmpl &$engine): string {
+        $last = pathinfo($resource, PATHINFO_FILENAME);
+        $resourceAbsPath = rtrim($engine->getResourceRoot(), '/') . '/' . trim($resource, '/');
         $properties = null;
         if ($context->has('properties')) {$properties = $context->get('properties');}
         else if ($context->has('data')) {$properties = $context->get('data');}
-        if (is_array($properties) && isset($properties[$attrResource['path']])) {
-            $properties = $properties[$attrResource['path']];
+        if (is_array($properties) && isset($properties[$path])) {
+            $properties = $properties[$path];
             if (isset($properties['properties'])) {$data = $properties['properties'];}
             else if (isset($properties['data'])) {$data = $properties['data'];}
             else {$data = array();}
-            self::formatData($data);
+            Util\CompilerUtil::formatContextualData($data);
             $contextData = $context->getAsArray();
             $contextData['properties'] = isset($data['properties']) ? $data['properties'] : $data;
-            $newNode = new \DOMText();
-            $newNode->data = self::loadResource($attrResource['resource'], $contextData, $engine);
-            $child->removeAttribute(ApiAttrs::RESOURCE);
-            $child->appendChild($newNode);
+            return Util\CompilerUtil::loadResource($resource, $contextData, $engine);
         }
         else if (is_string($properties)) {
-            $tmpl = new Tmpl($properties);
-            $context = new Context(array());
-            $tmplEngine = new GX2CMS();
-            $buffer[] = $engine->compile($context, $tmpl);
+            return GX2CMS::render($properties, array(), $engine->getResourceRoot(), '');
         }
-    }
-
-    /* @TODO: handle recursively */
-    private function loadContainerParagraphSystem(array $attrResource, \DOMElement &$child, Context &$context, Tmpl &$tmpl, InterfaceEzpzTmpl &$engine, array &$buffer) {
-        $last = pathinfo($attrResource['resource'], PATHINFO_FILENAME);
-        $resourceAbsPath = self::resourceAbsPath($engine, $attrResource['resource']);
-        $properties = null;
-        if ($context->has('properties')) {$properties = $context->get('properties');}
-        else if ($context->has('data')) {$properties = $context->get('data');}
-        if (is_array($properties) && isset($properties[$attrResource['path']])) {
-            $properties = $properties[$attrResource['path']];
-            if (isset($properties['properties'])) {$data = $properties['properties'];}
-            else if (isset($properties['data'])) {$data = $properties['data'];}
-            else {$data = array();}
-            foreach ($data as $nodeName => $nodeProperty) {
-                if (isset($nodeProperty['resourceType'])) {
-                    $nodeContextData = isset($nodeProperty['data']) ? $nodeProperty['data'] : array();
-                    self::formatData($nodeContextData);
-                    $contextData = $context->getAsArray();
-                    $contextData['properties'] = isset($nodeContextData['properties']) ? $nodeContextData['properties'] : $nodeContextData;
-                    $buffer[] = self::loadResource($nodeProperty['resourceType'], $contextData, $engine);
-                }
-            }
-        }
-        else if (is_string($properties)) {
-            $tmpl = new Tmpl($properties);
-            $context = new Context(array());
-            $tmplEngine = new GX2CMS();
-            $buffer[] = $engine->compile($context, $tmpl);
-        }
+        return '';
     }
 
     private function reformatContext(Context &$context) {
@@ -260,19 +163,6 @@ class CompileResource implements CompileInterface
                     $context = new Context($arr);
                 }
             }
-        }
-    }
-
-    private static function formatData(array &$data) {
-        $isArray = true;
-        foreach ($data as $k=>$v) {
-            if (!is_numeric($k)) {
-                $isArray = false;
-                break;
-            }
-        }
-        if ($isArray) {
-            $data = array('properties' => $data);
         }
     }
 
@@ -299,12 +189,5 @@ class CompileResource implements CompileInterface
                 }
             }
         }
-    }
-
-    private static function resourceAbsPath(InterfaceEzpzTmpl &$engine, string $resource): string {
-        $root = $engine->getResourceRoot();
-        if (StringUtil::startsWith($resource, $root)) {$resource = str_replace($root, '', $resource);}
-        $path = rtrim($root, '/') . '/' . trim($resource, '/');
-        return str_replace(array('////','///','//'), '/', $path);
     }
 }

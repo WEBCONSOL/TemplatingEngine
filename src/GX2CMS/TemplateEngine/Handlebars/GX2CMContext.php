@@ -7,15 +7,16 @@ use GX2CMS\TemplateEngine\Util\Constants;
 use GX2CMS\TemplateEngine\Util\RegexConstants;
 use GX2CMS\TemplateEngine\Util\Response;
 use GX2CMS\TemplateEngine\Util\StringUtil;
+use WC\Utilities\ArrayUtil;
 use WC\Utilities\PregUtil;
 
 class GX2CMContext extends Context
 {
-    private $customContext = array();
+    private $localContext = array();
 
     public function __construct($context = null)
     {
-        $this->customContext = $context;
+        $this->localContext = $context;
         parent::__construct($context);
     }
 
@@ -64,19 +65,19 @@ class GX2CMContext extends Context
                 $val = parent::get($variableName, $strict);
                 if ($val) {return $val;}
             }
-            if (StringUtil::startsWith($variableName, 'itemList.')) {
+            else if (StringUtil::startsWith($variableName, 'itemList.')) {
                 $parts = explode('.', strtolower($variableName));
                 $parts[0] = '@'.$parts[0];
                 $variableName = implode('', $parts);
                 $val = parent::get($variableName, $strict);
                 if ($val) {return $val;}
             }
-            if (StringUtil::startsWith($variableName, 'item.')) {
+            else if (StringUtil::startsWith($variableName, 'item.')) {
                 $variableName = str_replace('item.', 'this.', $variableName);
                 $val = parent::get($variableName, $strict);
                 if ($val) {return $val;}
             }
-            if ($variableName instanceof StringWrapper) {
+            else if ($variableName instanceof StringWrapper) {
                 $ret = (string)$variableName;
                 if ($ret == "''") {$ret = "";}
                 return $ret;
@@ -88,9 +89,10 @@ class GX2CMContext extends Context
             $htmlBlock = $this->htmlBlock($variableName);
             if ($htmlBlock) {return $htmlBlock;}
 
-            $vars = $this->_splitVariableName($variableName);
-            $val = $this->_findVariableInContext($vars, $this->customContext);
-            if ($val !== null) {return $val;}
+            $val = ArrayUtil::search($variableName, $this->localContext);
+            if ($val !== null) {
+                return $val;
+            }
             return parent::get($variableName, $strict);
         }
         else {
@@ -164,67 +166,5 @@ class GX2CMContext extends Context
                 return true;
             }
         }
-    }
-
-    private function _splitVariableName($variableName): array
-    {
-        $bad_chars = preg_quote(self::NOT_VALID_NAME_CHARS, '/');
-        $bad_seg_chars = preg_quote(self::NOT_VALID_SEGMENT_NAME_CHARS, '/');
-
-        $name_pattern = "(?:[^"
-            . $bad_chars
-            . "\s]+)|(?:\[[^"
-            . $bad_seg_chars
-            . "]+\])";
-
-        $check_pattern = "/^(("
-            . $name_pattern
-            . ")\.)*("
-            . $name_pattern
-            . ")\.?$/";
-
-        $get_pattern = "/(?:" . $name_pattern . ")/";
-
-        if (!preg_match($check_pattern, $variableName)) {
-            throw new \InvalidArgumentException(
-                sprintf(
-                    'Variable name is invalid: "%s"',
-                    $variableName
-                )
-            );
-        }
-
-        preg_match_all($get_pattern, $variableName, $matches);
-
-        $chunks = array();
-        foreach ($matches[0] as $chunk) {
-            // Remove wrapper braces if needed
-            if ($chunk[0] == '[') {
-                $chunk = substr($chunk, 1, -1);
-            }
-            $chunks[] = $chunk;
-        }
-
-        return $chunks;
-    }
-
-    private function _findVariableInContext($variable, array $context)
-    {
-        $value = null;
-        if (is_array($variable)) {
-            foreach ($variable as $var) {
-                if (isset($context[$var])) {
-                    $value = $context[$var];
-                    $context = $value;
-                }
-                else {
-                    $value = null;
-                }
-            }
-        }
-        else if (is_string($variable) && isset($context[$variable])) {
-            $value = $context[$variable];
-        }
-        return $value;
     }
 }

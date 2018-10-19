@@ -98,14 +98,19 @@ final class CompilerUtil
         $last = pathinfo($resource, PATHINFO_FILENAME);
         $resourceAbsPath = self::resourceAbsPath($engine, $resource);
         $properties = null;
+        $data = null;
         if ($context->has('properties')) {$properties = $context->get('properties');}
         else if ($context->has('data')) {$properties = $context->get('data');}
-        if (is_array($properties) && isset($properties[$path])) {
+        if ($context->has('cols')) {
+            $data = $context->getAsArray();
+        }
+        else if (is_array($properties) && isset($properties[$path])) {
             $properties = $properties[$path];
             if (isset($properties['properties'])) {$data = $properties['properties'];}
             else if (isset($properties['data'])) {$data = $properties['data'];}
             else {$data = array();}
-
+        }
+        if ($data !== null) {
             if (isset($data['cols']) && isset($data['resources']) && is_array($data['resources']) && sizeof($data['resources'])) {
                 $html = file_get_contents($resourceAbsPath.'/container.html');
                 $pattern = '/<div class="col-(.*)"><gx2cms data-gx2cms-resource="(.*)"><\/gx2cms><\/div>/';
@@ -136,9 +141,9 @@ final class CompilerUtil
                     }
                 }
             }
-        }
-        else if (is_string($properties)) {
-            return GX2CMS::render($properties, array(), $engine->getResourceRoot(), '');
+            else if (is_string($data)) {
+                return GX2CMS::render($data, array(), $engine->getResourceRoot(), '');
+            }
         }
         return '';
     }

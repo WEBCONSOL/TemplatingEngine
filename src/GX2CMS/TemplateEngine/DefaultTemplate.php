@@ -402,7 +402,7 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
             if (sizeof($data)) {$context->set(WC_SESSION_DATA_KEY, $data);}
         }
 
-        if (!$context->has(KEY_CURRENT_PAGE) && sizeof(self::$currentPage)) {
+        if (!$context->has(KEY_CURRENT_PAGE) && !empty(self::$currentPage)) {
             $context->set(KEY_CURRENT_PAGE, self::$currentPage);
         }
     }

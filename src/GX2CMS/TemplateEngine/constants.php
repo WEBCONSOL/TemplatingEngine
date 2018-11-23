@@ -28,3 +28,4 @@ if (!defined('KEY_HTTP_REQUEST')) {define('KEY_HTTP_REQUEST', 'httpRequest');}
 if (!defined('KEY_CURRENT_PAGE')) {define('KEY_CURRENT_PAGE', 'currentPage');}
 if (!defined("WC_SESSION_LOGIN_KEY")) {define("WC_SESSION_LOGIN_KEY", "wc_login_uid");}
 if (!defined("WC_SESSION_DATA_KEY")) {define("WC_SESSION_DATA_KEY", "session_user_data");}
+if (!defined("DS")) {define("DS", DIRECTORY_SEPARATOR);}

@@ -27,6 +27,14 @@ class GX2CMContext extends Context
             // logical statement (i.e. if else or unary statement)
             if ($this->isConditionalStatement($variableName)) {
                 $variableName = str_replace(Constants::REPLACES, Constants::PATTERNS, $variableName);
+                if (strpos($variableName, 'itemList.') !== false) {
+                    $variableName = str_replace('itemList.', '@', $variableName);
+                    $this->adjustVar($variableName);
+                }
+                else if (strpos($variableName, 'item.') !== false) {
+                    $variableName = str_replace('item.', 'this.', $variableName);
+                    $this->adjustVar($variableName);
+                }
                 $token = CompilerUtil::conditionalExpressionTokenizer($variableName);
                 if (isset($token['vars']) && is_array($token['vars']) && isset($token['statement'])) {
                     if (sizeof($token['vars'])===2 && StringUtil::contains($variableName, '||')) {
@@ -181,5 +189,19 @@ class GX2CMContext extends Context
         $var = trim($var);
         $len = strlen($var);
         return $len > 2 && (($var[0] === '"' && $var[$len-1] === '"') || ($var[0] === "'" && $var[$len-1] === "'"));
+    }
+
+    private function adjustVar(&$variableName) {
+        $variableName = str_replace('item.', 'this.', $variableName);
+        foreach (Constants::PATTERNS as $char) {
+            $exp = explode($char, $variableName);
+            if (sizeof($exp) > 1) {
+                $uid = uniqid();
+                $newVar = 'newVar'.$uid;
+                $$newVar = parent::get($exp[0]);
+                $exp[0] = 'newVar'.$uid;
+                $variableName = implode($char, $exp);
+            }
+        }
     }
 }

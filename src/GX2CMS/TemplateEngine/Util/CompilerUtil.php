@@ -16,7 +16,7 @@ final class CompilerUtil
     // TODO: use in test api - optimize this.
     public static function conditionalExpressionTokenizer(string $str): array {
         $str =  preg_replace(RegexConstants::WHITESPACE, '', $str);
-        $list = preg_split('/([\||&|=|!|\(|\)])/', $str);
+        $list = preg_split('/([\||&|=|!|\(|\)|<|>])/', $str);
         foreach ($list as $i=>$v) {
             if (!$v) {
                 unset($list[$i]);

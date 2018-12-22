@@ -52,12 +52,12 @@ class GX2CMContext extends Context
                 }
             }
 
-            // variable is found
-            $val = parent::get($variableName, $strict);
-            if ($val) {return $val;}
-
             // empty
             if ($variableName === "''") {return "";}
+
+            // constant
+            $cstnt = $this->getConstant($variableName);
+            if ($cstnt) {return $cstnt;}
 
             // variable within the loop context
             if ($variableName === 'item') {
@@ -77,22 +77,27 @@ class GX2CMContext extends Context
                 $val = parent::get($variableName, $strict);
                 if ($val) {return $val;}
             }
-            else if ($variableName instanceof StringWrapper) {
-                $ret = (string)$variableName;
-                if ($ret == "''") {$ret = "";}
-                return $ret;
+            else {
+
+                $htmlBlock = $this->htmlBlock($variableName);
+                if ($htmlBlock) {return $htmlBlock;}
+
+                $val = ArrayUtil::search($variableName, $this->localContext);
+                if ($val !== null) {
+                    return $val;
+                }
+
+                // variable is found
+                $val = parent::get($variableName, $strict);
+                if ($val) {return $val;}
+
+                if ($variableName instanceof StringWrapper) {
+                    $ret = (string)$variableName;
+                    if ($ret == "''") {$ret = "";}
+                    return $ret;
+                }
             }
 
-            // constant
-            if ($this->getConstant($variableName)) {return $this->getConstant($variableName);}
-
-            $htmlBlock = $this->htmlBlock($variableName);
-            if ($htmlBlock) {return $htmlBlock;}
-
-            $val = ArrayUtil::search($variableName, $this->localContext);
-            if ($val !== null) {
-                return $val;
-            }
             return parent::get($variableName, $strict);
         }
         else {
@@ -156,15 +161,25 @@ class GX2CMContext extends Context
     }
 
     private function isConditionalStatement($variableName) {
+        $newVariableName = str_replace(Constants::REPLACES, Constants::PATTERNS, $variableName);
+        if ($variableName !== $newVariableName) {
+            return true;
+        }
         foreach (Constants::REPLACES as $char) {
             if (strpos($variableName, $char) !== false) {
                 return true;
             }
         }
         foreach (Constants::PATTERNS as $char) {
-            if (strpos($variableName, $char) !== false) {
+            if (strpos($variableName, $char) !== false && !$this->isQuotedString($variableName)) {
                 return true;
             }
         }
+    }
+
+    private function isQuotedString($var): bool {
+        $var = trim($var);
+        $len = strlen($var);
+        return $len > 2 && (($var[0] === '"' && $var[$len-1] === '"') || ($var[0] === "'" && $var[$len-1] === "'"));
     }
 }

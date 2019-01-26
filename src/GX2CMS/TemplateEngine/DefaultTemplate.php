@@ -37,7 +37,7 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
     /**
      * DefaultTemplate constructor.
      */
-    public function __construct(\Database\Driver $driver=null, RequestInterface $request=null)
+    public function __construct(\WC\Database\Driver $driver=null, RequestInterface $request=null)
     {
         $this->databaseDriver = $driver;
         $this->request = $request;
@@ -410,9 +410,9 @@ final class DefaultTemplate implements InterfaceEzpzTmpl
     // this is helpful for storing current page data as global variable within the GX2CMS context
     public static function setCurrentPage(array $obj) {self::$currentPage = $obj;}
 
-    public function setDatabaseDriver(\Database\Driver $driver) { $this->databaseDriver = $driver; }
+    public function setDatabaseDriver(\WC\Database\Driver $driver) { $this->databaseDriver = $driver; }
 
-    public function getDatabaseDriver(): \Database\Driver { return $this->databaseDriver; }
+    public function getDatabaseDriver(): \WC\Database\Driver { return $this->databaseDriver; }
 
     public function hasDatabaseDriver(): bool {return $this->databaseDriver !== null;}
 

@@ -14,7 +14,7 @@ final class GX2CMS
     private $engine;
 
     public static function render(string $soruce, array $context, string $root="", string $resourceAbsPath="",
-                                  \Database\Driver $driver=null,
+                                  \WC\Database\Driver $driver=null,
                                   RequestInterface $request=null, bool $isPage=false)
     {
         if ($resourceAbsPath) {
@@ -33,7 +33,7 @@ final class GX2CMS
      *
      * @param $engine
      */
-    public function __construct(InterfaceEzpzTmpl $engine=null, \Database\Driver $driver=null, RequestInterface $request=null)
+    public function __construct(InterfaceEzpzTmpl $engine=null, \WC\Database\Driver $driver=null, RequestInterface $request=null)
     {
         if ($engine === null) {
             $this->loadEngine(new DefaultTemplate($driver, $request));

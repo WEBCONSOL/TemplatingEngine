@@ -8,7 +8,7 @@ use Psr\Http\Message\RequestInterface;
 
 interface InterfaceEzpzTmpl
 {
-    public function __construct(\Database\Driver $driver=null, RequestInterface $request=null);
+    public function __construct(\WC\Database\Driver $driver=null, RequestInterface $request=null);
 
     public function compile(Context $context, Tmpl $tmpl): string;
 
@@ -32,9 +32,9 @@ interface InterfaceEzpzTmpl
 
     public function hasPlugins(): bool;
 
-    public function setDatabaseDriver(\Database\Driver $driver);
+    public function setDatabaseDriver(\WC\Database\Driver $driver);
 
-    public function getDatabaseDriver(): \Database\Driver;
+    public function getDatabaseDriver(): \WC\Database\Driver;
 
     public function hasDatabaseDriver(): bool;
 

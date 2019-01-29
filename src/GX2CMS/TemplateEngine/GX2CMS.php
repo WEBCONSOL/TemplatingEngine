@@ -5,7 +5,6 @@ namespace GX2CMS\TemplateEngine;
 use GX2CMS\TemplateEngine\Model\Context;
 use GX2CMS\TemplateEngine\Model\Tmpl;
 use Psr\Http\Message\RequestInterface;
-use WC\Utilities\StringUtil;
 
 if (!defined('GX2CMS_PLATFORM_TAG')) {include __DIR__ . '/constants.php';}
 
